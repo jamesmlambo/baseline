@@ -24,3 +24,4 @@ npm run build
 | Date | Milestone | Tests | Result |
 |---|---|---|---|
 | 2026-11-20 | M1 | 31 | All passed |
+| 2026-11-21 | M2 | 81 | All passed (incl. 2 two-connection concurrency tests) |

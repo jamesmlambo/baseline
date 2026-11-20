@@ -4,7 +4,7 @@ Seeded from `FINAL_SPECIFICATION.md` §3.2. Items with a setting show up in **Ad
 
 | Ref | Decision needed | Setting key(s) | Current build behaviour |
 |---|---|---|---|
-| PEND-01 | Hold durations | `booking.hold_minutes_online` (30, development default), `booking.hold_hours_manual_eft` (empty) | Not built yet (M2). |
+| PEND-01 | Hold durations | `booking.hold_minutes_online` (30, development default), `booking.hold_hours_manual_eft` (empty) | Every hold must have an expiry (enforced in the database). Online holds use the 30-minute development default; callers can pass a specific expiry. Expired holds are released every minute. |
 | PEND-02 | Late EFT after a hold expires | — | Not built yet (M4). |
 | PEND-03 | Card vs ordinary EFT order | `payments.method_order` | Instant EFT → Card → EFT, configurable. |
 | PEND-04 | Rooms, rates, contact details | `contact.*` (empty) | Nothing invented. Public site shows a DEMO banner. |

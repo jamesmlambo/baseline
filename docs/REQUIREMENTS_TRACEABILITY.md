@@ -17,3 +17,16 @@ Only requirements that have been worked on are listed. Everything else is still 
 | CMS-06 | Site settings for Admin/Owner only | Tested | `SettingPolicy` | `StaffManagementTest` |
 | WEB-08 | No invented facts / DEMO badge | Tested | Layout, `SettingSeeder` | `ExampleTest`, `StaffManagementTest` |
 | PEND-01–14 | Pending decisions visible in admin | Implemented | `SettingSeeder`, Settings screen | `StaffManagementTest` |
+| DEC-02 / INV-02 | Physical room assigned at booking | Tested | `PlaceBooking` | `PlaceBookingTest` |
+| INV-01 | Types, rooms, seasonal rates, blocks | Tested (rate plans, coupons, taxes deferred to M4) | Models, admin screens | `InventoryTest`, `InventoryAdminTest` |
+| INV-03 | One active claim per room night | Tested | `room_nights_one_active_claim` | `InventoryTest`, `LastRoomRaceTest` |
+| INV-04 | Exclusion constraint on assignments | Tested | `booking_rooms_no_overlap` | `InventoryTest` |
+| INV-05 | Maintenance / owner blocks | Tested | `BlockRoom`, Room blocks screen | `InventoryTest`, `InventoryAdminTest` |
+| INV-06 | Re-check inside the transaction | Tested | `PlaceBooking` savepoint retry | `LastRoomRaceTest` |
+| INV-07 | Audited reassignment with reason | Tested (portal/housekeeping hooks in M7/M8) | `ReassignRoom` | `InventoryTest` |
+| BOOK-01 | One engine for all sources | Implemented (callers arrive in M4–M6, M12) | `PlaceBooking`, `BookingSource` | `PlaceBookingTest` |
+| BOOK-02 | Multi-room bookings | Tested (groups, extras, coupons in M4) | `BookingRequest` | `PlaceBookingTest` |
+| BOOK-03 | Valid transitions + history | Tested | `BookingStateMachine` | `BookingStateMachineTest` |
+| BOOK-04 | Every hold expires; released every minute | Tested | `ReleaseExpiredHolds`, scheduler, DB CHECK | `BookingStateMachineTest` |
+| BOOK-05 | Source + external reference recorded | Implemented | `bookings` columns | — |
+| WEB-06 | Prices from the rate engine | Tested | `RateCalculator` | `InventoryTest` |

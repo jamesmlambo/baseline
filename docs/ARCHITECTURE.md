@@ -14,3 +14,10 @@ Record every compatibility or design decision here (MASTER_PROMPT §0).
 | 2026-11-20 | Pest 4 on PHPUnit 12, against PostgreSQL | MASTER_PROMPT requires PostgreSQL for tests so constraints behave as in production. |
 | 2026-11-20 | Settings are a key/value table with `is_pending_client_decision` + `decision_reference` | Makes PEND items in FINAL_SPECIFICATION §3.2 visible and auditable in admin. |
 | 2026-11-20 | App timezone `Africa/Johannesburg` | Business times are SAST. Timestamp columns use `timestampTz`. |
+| 2026-11-21 | Inventory = `room_nights` ledger with a **partial unique index** on active claims, plus a **GiST exclusion constraint** on `booking_rooms` | Two independent database guarantees against double-booking, as INV-03/04 require. Released rows stay as history. |
+| 2026-11-21 | Conflicts detected by SQLSTATE `23505`/`23P01`, retried room by room in savepoints | No application-level locks needed. The database decides who wins a race; the loser tries the next free room or gets a clear "no longer available". |
+| 2026-11-21 | Stay ranges are `[arrival, departure)`; room blocks use the same exclusive end ("back in service on") | Same-day turnover works naturally (one guest departs, the next arrives). |
+| 2026-11-21 | Seasonal rates use inclusive ranges, with no overlap per type (exclusion constraint) | Staff think in "first night / last night". Each night has exactly one price. |
+| 2026-11-21 | Booking status changes only through `BookingStateMachine` | One place for transition rules, history and inventory release (BOOK-03). |
+| 2026-11-21 | Rate plans deferred to M4 | The spec lists them under INV-01, but there's no client input on which plans exist. Base + seasonal rates cover pricing until then. |
+| 2026-11-21 | Concurrency tests use `DatabaseTruncation` and a second connection | `RefreshDatabase` transactions are invisible to other connections, so a true race can't be shown with them. |

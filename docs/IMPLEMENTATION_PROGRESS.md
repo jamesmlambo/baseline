@@ -4,8 +4,9 @@ New session? Read `docs/MASTER_PROMPT.md`, `docs/FINAL_SPECIFICATION.md` and thi
 
 ## Current status
 
-- **Milestone 1 — Foundation:** mostly done (see "Still to do in M1").
-- **Next:** finish the M1 leftovers, then **Milestone 2 — Rooms & booking engine**.
+- **Milestone 1 — Foundation:** done.
+- **Milestone 2 — Rooms & booking engine:** done (engine and admin screens). There is no booking UI yet: bookings are created through `PlaceBooking`, and the screens come in M4/M5.
+- **Next:** **Milestone 3 — Public website** (20 pages, CMS, SEO, redirects; FINAL_SPECIFICATION §5).
 
 ## Environment
 
@@ -13,36 +14,52 @@ New session? Read `docs/MASTER_PROMPT.md`, `docs/FINAL_SPECIFICATION.md` and thi
 |---|---|
 | Laravel | 13.43 |
 | PHP | 8.5.12 (Herd) |
-| PostgreSQL | 18.4, user `postgres`, local trust auth (no password) |
+| PostgreSQL | 18.4, user `postgres`, local trust auth (no password); `btree_gist` extension used |
 | App database | `baselineCL` |
 | Test database | `baselineCL_testing` (used by `phpunit.xml`) |
 | Not ours | `baseline_lodge`, `baseline_lodge_test`, `baseline_lodge_testing` belong to another Laravel project. **Do not touch them.** |
-| Local URL | http://127.0.0.1:8000 (`php artisan serve`) |
+| Local URL | http://127.0.0.1:8000 (`php artisan serve`, or the VS Code task **Dev: all**) |
+| Git | `main`, author James. No remote. |
 
 ## Milestone 1 — Foundation (20 Nov 2026)
 
-### Done
-- Laravel Boost installed (`CLAUDE.md`, `.mcp.json`, `boost.json`, `.claude/skills`).
-- Switched to PostgreSQL: `.env`, `.env.example` and `phpunit.xml`. Timezone Africa/Johannesburg, locale en_ZA, app name "Baseline Lodge".
-- Packages: Filament 5.11, spatie/laravel-permission 8.5, spatie/laravel-activitylog 5.1, Pest 4.7 + Laravel plugin.
-- **Panels:** `/admin` and `/staff`, both with login, password reset and profile. App-based TOTP two-factor login with recovery codes. 2FA is **required** on `/admin` and optional on `/staff`.
-- **Roles** (`App\Enums\StaffRole`): Administrator, Owner, Manager, Receptionist, Housekeeping worker, Maintenance worker, Inspector, Content editor. `/admin` allows Administrator, Owner, Manager, Receptionist and Content editor. `/staff` allows any role. Deactivated accounts are blocked everywhere.
-- **Audit log:** user field changes, setting changes, and role assigned/removed (who did it and which roles). `last_login_at` is recorded on each sign-in.
-- **Staff accounts** (`Admin › People`): Administrator and Owner only. No deletion, only deactivation. An Administrator cannot edit an Owner's account.
-- **System settings** (`Admin › Settings`): seeded key/value settings. Items awaiting a client decision show a warning and a PEND reference, and the navigation badge counts them. Settings cannot be created or deleted from the UI.
-- **Seeders:** `RoleSeeder` and `SettingSeeder` (both safe to re-run). `DevelopmentUserSeeder` is local-only: one demo account per role with random passwords written to `storage/app/private/dev-credentials.txt`, which is not committed.
-- **Public site:** base layout (skip link, DEMO banner outside production, official communication notice, staff sign-in link) and a placeholder homepage. Fonts are self-hosted through the Vite fonts plugin (Fraunces + Instrument Sans).
-- **Tests:** 31 passing on PostgreSQL. They cover panel access per role, 2FA enforcement, encrypted 2FA secret, staff management policies, role-change audit, settings seeding without invented values, and the homepage.
+Done: PostgreSQL, Laravel Boost, Filament 5 panels `/admin` and `/staff` with TOTP 2FA (required on `/admin`), 8 staff roles, staff accounts screen, system settings with PENDING flags, audit log, local demo staff accounts, public layout and placeholder homepage, VS Code workspace, project rules (`.ai/guidelines`, merged into `CLAUDE.md`/`AGENTS.md`), README and docs.
 
-### Still to do in M1
-- First Git commit. The repository is initialised, but Git has no user name/email set yet.
-- `.vscode/` tasks and recommended extensions (MASTER_PROMPT §0A). Note: `/.vscode` is currently in `.gitignore`.
-- `README.md` rewrite, `docs/REQUIREMENTS_TRACEABILITY.md`, `docs/INTEGRATIONS.md`, `docs/COMPLIANCE_TODO.md`, `docs/TESTING.md`.
+## Milestone 2 — Rooms & booking engine (21 Nov 2026)
 
-### How to run
-```powershell
-php artisan migrate --seed
-php artisan serve
-php artisan test --compact
-```
-Demo staff logins: `storage/app/private/dev-credentials.txt`. On first sign-in to `/admin`, set up an authenticator app.
+### Database
+- `accommodation_types`, `rooms`, `seasonal_rates`. Seasons cannot overlap per type (GiST exclusion constraint).
+- `bookings`, `booking_rooms`, `room_blocks`, `room_nights`, `booking_status_histories`.
+- **Double-booking protection in PostgreSQL:**
+  - `room_nights_one_active_claim`: unique (room, night) where not released (INV-03).
+  - `booking_rooms_no_overlap`: exclusion constraint on overlapping active stays per room (INV-04).
+  - CHECKs: departure after arrival, a hold must have an expiry, no negative money, valid occupancy.
+
+### Code
+- `App\Support\Money` + `MoneyCast` (integer cents, `R 1 234.50` formatting). `App\Support\StayDates`.
+- Enums: `BookingStatus` (with allowed transitions), `PaymentStatus`, `BookingSource`, `RoomBlockReason`.
+- `Services\Pricing\RateCalculator`: seasonal rate per night, else base rate, plus extra guests.
+- `Services\Availability\AvailabilityService`: the single availability source (search, available rooms, room check).
+- `Services\Inventory\RoomNightLedger`: claims and releases room nights; detects conflicts by SQLSTATE.
+- `Actions\Bookings\PlaceBooking`: creates the booking and assigns a physical room per requested room in one transaction. Tries the next room if a concurrent request wins. Holds always get an expiry (setting `booking.hold_minutes_online`, PEND-01).
+- `Services\Bookings\BookingStateMachine`: the only way to change status. Rejects invalid moves, writes history, and releases inventory on Cancelled, No-show and Expired.
+- `Actions\Bookings\ReleaseExpiredHolds` + scheduled `bookings:release-expired-holds` every minute.
+- `Actions\Bookings\ReassignRoom`: reason required, audited, old assignment kept as history.
+- `Actions\Inventory\BlockRoom` / `ReleaseRoomBlock`: refuses to block booked nights.
+
+### Admin (`/admin › Bookings`)
+- **Rooms & rates:** room types with Rooms and Seasonal rates tabs. Rand inputs are stored as cents. Types and rooms are deactivated, never deleted.
+- **Room blocks:** take a room out of service; release button.
+- Access: Administrator, Owner and Manager manage; Receptionist views only.
+
+### Demo data
+`DemoAccommodationSeeder` (local only): "Demo Standard Room" ×4 and "Demo Family Room" ×2, rooms "Demo Room 01–06", flagged `is_demo`. Prices are placeholders.
+
+### Tests
+81 passing, including a **two-connection race test** (`tests/Concurrency`) proving a rival claim waits on, then is refused by, an uncommitted booking of the last room.
+
+### Deferred (by design)
+- Rate plans (e.g. B&B vs room-only) and enforcing a season's minimum nights: M4 booking flow.
+- Taxes and fees: M4 finance.
+- Room readiness status (Dirty/Ready…): M8 housekeeping.
+- Booking list and calendar UI: M4/M5.

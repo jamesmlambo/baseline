@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\StaffRole;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -16,6 +17,14 @@ pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->beforeEach(fn () => test()->seed(RoleSeeder::class))
     ->in('Feature');
+
+/*
+| Concurrency tests commit data on two real connections, so they truncate instead of
+| wrapping each test in a transaction.
+*/
+pest()->extend(TestCase::class)
+    ->use(DatabaseTruncation::class)
+    ->in('Concurrency');
 
 function staffUser(StaffRole ...$roles): User
 {
