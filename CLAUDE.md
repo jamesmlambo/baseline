@@ -1,4 +1,33 @@
 <laravel-boost-guidelines>
+=== .ai/baseline-lodge rules ===
+
+# Baseline Lodge project rules
+
+Read `docs/MASTER_PROMPT.md`, `docs/FINAL_SPECIFICATION.md` and `docs/IMPLEMENTATION_PROGRESS.md` at the start of every session. The client specification is `docs/SPEC_v5.3.txt` / `docs/SPEC_v5.3.pdf`.
+
+Precedence: client decisions in SPEC v5.3 → `FINAL_SPECIFICATION.md` → `MASTER_PROMPT.md` → reviewer suggestions.
+
+## Non-negotiable rules
+
+- The guesthouse is **Baseline Lodge**. Never use "Nyala" or any other name.
+- **PostgreSQL only**, tests included. App DB `baselineCL`, test DB `baselineCL_testing`. Never touch `baseline_lodge*` databases: they belong to another project.
+- **Never invent business facts** (room names, prices, contact details, policies, photos, grading). Use clearly marked DEMO data or settings flagged PENDING CLIENT DECISION.
+- **No live integrations.** Payments, SMS, WhatsApp, channel managers and Hikvision use interfaces with fake/log drivers until approved.
+- **No destructive commands** (dropping databases, `migrate:fresh` on `baselineCL`, deleting data) without explicit approval.
+- Work milestone by milestone (FINAL_SPECIFICATION §22). Run migrations, Pest, Pint and `npm run build` before calling anything done. Never claim a test passed unless it ran.
+- Money is integer cents (`bigint`). Times are stored as `timestampTz` and shown in Africa/Johannesburg.
+
+## Conventions
+
+- `declare(strict_types=1)` in every PHP file. PHP enums for statuses, in `app/Enums`.
+- Business logic lives in `app/Actions` and `app/Services`. Keep Filament resources, controllers and Livewire components thin.
+- Policies for every model. Form Requests for HTTP validation.
+- Use requirement IDs from FINAL_SPECIFICATION (e.g. `BOOK-03`) in test names and `docs/REQUIREMENTS_TRACEABILITY.md`.
+
+## Docs to keep updated
+
+`docs/IMPLEMENTATION_PROGRESS.md` (after every milestone), `docs/ARCHITECTURE.md`, `docs/PENDING_DECISIONS.md`, `docs/REQUIREMENTS_TRACEABILITY.md`, `docs/INTEGRATIONS.md`, `docs/COMPLIANCE_TODO.md`, `docs/TESTING.md`.
+
 === foundation rules ===
 
 # Laravel Boost Guidelines
@@ -10,10 +39,6 @@ This application is a Laravel application running on PHP 8.5. Always use the API
 Before relying on a package's API, confirm its installed version:
 - PHP packages: run `composer show --direct` to list direct dependencies with versions, or `composer show <vendor/package>` for a single package.
 - JS packages: check `package.json` for the installed versions.
-
-## Skills Activation
-
-This project has domain-specific skills available in `**/skills/**`. You MUST activate the relevant skill whenever you work in that domain—don't wait until you're stuck.
 
 ## Conventions
 
@@ -96,7 +121,16 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 # Deployment
 
 - Laravel can be deployed using [Laravel Cloud](https://cloud.laravel.com/), which is the fastest way to deploy and scale production Laravel applications.
-- Activate the `deploying-to-cloud` skill whenever deploying to Laravel Cloud, configuring Cloud environments or resources, using the Cloud CLI, or troubleshooting Cloud deployments.
+
+=== tests rules ===
+
+# Test Enforcement
+
+- Add or update tests for behavior and logic changes when a test provides meaningful regression coverage.
+- Pure copy, styling, and layout-only changes do not require new or updated tests.
+- When test coverage applies, run the affected tests and ensure they pass.
+- Test the changed behavior and its important failure modes, but do not add tests beyond them.
+- Read the `testing-best-practices` skill before writing tests.
 
 === laravel/core rules ===
 
@@ -131,18 +165,19 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - If you have modified any PHP files, you must run `vendor/bin/pint --dirty --format agent` before finalizing changes to ensure your code matches the project's expected style.
 - Do not run `vendor/bin/pint --test --format agent`, simply run `vendor/bin/pint --format agent` to fix any formatting issues.
 
-=== phpunit/core rules ===
+=== pest/core rules ===
 
-# PHPUnit
+# Pest
 
-- This project uses PHPUnit. Create tests with `php artisan make:test --phpunit {name}`.
+- This project uses Pest. Create tests with `php artisan make:test --pest {name}`.
 - Do not include the test suite directory in `{name}`. Use `SomeFeatureTest`, not `Feature/SomeFeatureTest`.
 - Read the `testing-best-practices` skill for guidance on coverage, naming, structure, dependency isolation, and review.
+- Do not delete tests or test files without approval. They are part of the application.
 
 ## Running Tests
 
 - Run the narrowest set of tests that covers the change. Pass a file path or `--filter=testName` to `php artisan test --compact`.
 - Rerun a test after each change to it.
-- Run `vendor/bin/phpunit` to call the test runner directly. It accepts the same file path and `--filter=testName` arguments.
+- Run `vendor/bin/pest` to call the test runner directly. It accepts the same file path and `--filter=testName` arguments.
 
 </laravel-boost-guidelines>

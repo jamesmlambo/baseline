@@ -1,58 +1,81 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Baseline Lodge
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Guesthouse website and management platform: public website, bookings, reception, guest portal, housekeeping, staff and owner reporting. Built with Laravel 13, Filament 5 and PostgreSQL.
 
-## About Laravel
+- Specification: [`docs/FINAL_SPECIFICATION.md`](docs/FINAL_SPECIFICATION.md) (client source: `docs/SPEC_v5.3.pdf`)
+- Build instructions: [`docs/MASTER_PROMPT.md`](docs/MASTER_PROMPT.md)
+- Progress: [`docs/IMPLEMENTATION_PROGRESS.md`](docs/IMPLEMENTATION_PROGRESS.md)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Requirements
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+PHP 8.4+ (with `pdo_pgsql`, `pgsql`, `intl`, `gd`, `zip`, `bcmath`, `sodium`), Composer 2, Node.js LTS, PostgreSQL 16+.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Local installation (Windows, PowerShell)
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```powershell
+composer install
+npm install
+Copy-Item .env.example .env
+php artisan key:generate
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### PostgreSQL
 
-## Contributing
+Create the two databases. The quotes matter, because the names are mixed-case:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```powershell
+psql -U postgres -f database/create-databases.sql
+```
 
-## Code of Conduct
+Set `DB_USERNAME` / `DB_PASSWORD` in `.env` if your server needs them. Tests use `baselineCL_testing` (see `phpunit.xml`) and **must** run on PostgreSQL.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Migrations and seed data
 
-## Security Vulnerabilities
+```powershell
+php artisan migrate --seed
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- `RoleSeeder` and `SettingSeeder` are safe in every environment and never overwrite changed settings.
+- In the `local` environment, `DevelopmentUserSeeder` creates one demo account per staff role with random passwords, written to `storage/app/private/dev-credentials.txt`. That file is never committed. The seeder refuses to run outside `local`.
 
-## License
+## Running
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+In VS Code, run the **Dev: all** task (Terminal › Run Task), or start each part yourself:
+
+```powershell
+php artisan serve
+npm run dev
+php artisan queue:listen --tries=3
+php artisan schedule:work
+```
+
+| Area | URL | Who |
+|---|---|---|
+| Public website | http://127.0.0.1:8000 | Everyone |
+| Administration | http://127.0.0.1:8000/admin | Administrator, Owner, Manager, Receptionist, Content editor. Two-factor login is required. |
+| Staff portal | http://127.0.0.1:8000/staff | All staff roles |
+| Guest portal | `/stay` | Coming in Milestone 7 |
+
+On first sign-in to `/admin` you will be asked to set up an authenticator app (Google Authenticator, Microsoft Authenticator, 1Password, etc.) and to save the recovery codes.
+
+## Integrations
+
+Payments, SMS, WhatsApp, channel managers and the Hikvision attendance device all run on fake/log drivers until a provider is approved. See [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md).
+
+## Tests and code style
+
+```powershell
+php artisan test --compact
+php vendor/bin/pint
+npm run build
+```
+
+See [`docs/TESTING.md`](docs/TESTING.md).
+
+## Backup and restore
+
+Planned with `spatie/laravel-backup` in Milestone 13. Until then, use `pg_dump`:
+
+```powershell
+pg_dump -U postgres -Fc -f baselineCL.dump baselineCL
+```

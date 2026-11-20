@@ -1,0 +1,18 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        { "label": "Serve", "type": "shell", "command": "php artisan serve", "isBackground": true, "problemMatcher": [] },
+        { "label": "Vite", "type": "shell", "command": "npm run dev", "isBackground": true, "problemMatcher": [] },
+        { "label": "Queue", "type": "shell", "command": "php artisan queue:listen --tries=3", "isBackground": true, "problemMatcher": [] },
+        { "label": "Scheduler", "type": "shell", "command": "php artisan schedule:work", "isBackground": true, "problemMatcher": [] },
+        {
+            "label": "Dev: all",
+            "dependsOn": ["Serve", "Vite", "Queue", "Scheduler"],
+            "dependsOrder": "parallel",
+            "problemMatcher": []
+        },
+        { "label": "Test", "type": "shell", "command": "php artisan test --compact", "group": { "kind": "test", "isDefault": true }, "problemMatcher": [] },
+        { "label": "Pint", "type": "shell", "command": "php vendor/bin/pint", "problemMatcher": [] },
+        { "label": "Build", "type": "shell", "command": "npm run build", "group": "build", "problemMatcher": [] }
+    ]
+}
