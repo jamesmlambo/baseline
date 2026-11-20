@@ -1,0 +1,23 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+/* Baseline Lodge brand tokens — placeholder palette until the client supplies branding (WEB-01). */
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Fraunces', ui-serif, Georgia, serif;
+
+    --color-lodge-700: #146c64;
+    --color-lodge-800: #0f514b;
+    --color-lodge-900: #0b3a36;
+
+    --color-sand-50: #fbf8f3;
+    --color-sand-100: #f4eee3;
+    --color-sand-200: #e8dcc8;
+    --color-sand-300: #d3c3a6;
+    --color-sand-400: #b8a481;
+
+    --color-ink-900: #1c1917;
+}

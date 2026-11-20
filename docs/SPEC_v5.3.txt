@@ -1,0 +1,753 @@
+
+Guesthouse Website & Management
+Platform — Version 5.3
+CONSOLIDATED REQUIREMENTS & APPROVAL RECORD | VERSION 5.3
+
+18 November 2026 • Stakeholder review edition — architecture and commercial decisions remain
+open
+
+Consolidates original discovery, Versions 3–5, two independent reviewer submissions, client
+approvals in Version 5.1, and the confirmed Hikvision attendance terminal datasheet.
+
+Review instructions
+This document is intended for final review by the guesthouse owner, operating staff, developers and
+other stakeholders. Requirements marked CONFIRMED originate from the client or have been
+expressly accepted. RECOMMENDED items are proposed for approval. OPEN decisions require
+explicit sign-off. Claims about South African law, payment pricing and third-party integrations
+require independent verification before implementation.
+
+1. Executive summary
+Build a modern public website plus integrated guesthouse operations: direct reservations, room
+inventory, front desk, quotations and invoices, WhatsApp-assisted bookings, secure guest concierge,
+staff shifts and tasks, attendance, inspections, maintenance, leisure services, owner reporting and
+automation. Preserve all original requirements even where delivery is phased.
+
+VERSION 5.2 CONTROL NOTE: The approvals in Section 2 and clarifications in Sections 25–27
+supersede any earlier conflicting proposals elsewhere in this document. Unresolved commercial and
+integration decisions remain pending.
+
+2. Decision register — status at this review
+ Decision                          Status                            Current direction
+
+ Architecture                      APPROVED APPROACH; FINAL          Compare custom Laravel and
+                                   CHOICE PENDING                    hybrid PMS/channel manager;
+                                                                     complete integration
+                                                                     feasibility and costs before
+                                                                     choosing.
+ External booking channels         APPROVED TARGETS                  Booking.com and LekkeSlaap;
+                                                                     connectivity and third-party
+                                                                     terms must be confirmed.
+ Guest portal access               APPROVED                          Keep room QR and SMS links.
+                                                                     QR access requires OTP sent to
+                                                                     booking phone; verified
+                                                                     booker may authorise
+                                                                     additional guest phone
+                                                                     numbers.
+ Payments                          APPROVED                          Instant EFT first, ordinary EFT
+                                                                     and cards also offered; verify
+
+                                                                         settlement before marking
+                                                                         paid.
+    WhatsApp and SMS                   APPROVED                          Extensive automation, subject
+                                                                         to templates,
+                                                                         permission/consent, delivery
+                                                                         logs, retries, cost controls and
+                                                                         provider capability.
+    Attendance hardware                APPROVED EQUIPMENT;               Retain Hikvision DS-
+                                       INTEGRATION TEST PENDING          K1T342MFWX-E1;
+                                                                         face/fingerprint plus PIN/card
+                                                                         fallback; verify ISAPI/ISUP
+                                                                         attendance event access on
+                                                                         installed firmware.
+    Sensitive financial actions        APPROVED                          Owner/authorised manager
+                                                                         approvals, audit logs and dual
+                                                                         approval for refunds.
+    Physical room allocation           APPROVED                          Allocate exact named physical
+                                                                         room at booking, including
+                                                                         online/manual/WhatsApp and
+                                                                         external channel
+                                                                         reconciliation.
+    Rollout and offline mode           APPROVED                          Tested phases; preserve full
+                                                                         approved scope. Offline read-
+                                                                         only cached arrivals/room list;
+                                                                         no confirmed offline bookings.
+    Payroll and accounting             APPROVED BOUNDARY                 Attendance and financial
+                                                                         exports only; no full payroll or
+                                                                         general ledger in initial scope.
+    Daily reporting and farewell       PREVIOUSLY APPROVED               Owner email with secure
+                                                                         summary link and push at
+                                                                         17:00 SAST; automated thank-
+                                                                         you and safe-travels message
+                                                                         on completed checkout.
+    Temporary holds and                PENDING CLIENT DECISION           Hold duration, development
+    commercial inputs                                                    and 3-year operating budgets,
+                                                                         project approver, policies,
+                                                                         room and service inventory.
+
+3. Existing public website and CMS — CONFIRMED
+     Retain Home (imagery, availability widget), About Us, Our Rooms, Features, Spa and Contact Us.
+     Add Services page: day passes, swimming pool, braai area, VIP 1, VIP 2, spa/massages and future
+      offerings.
+     Add News/Updates CMS: authorised staff can draft, edit and publish posts/events; latest posts
+      feature on the home page.
+     Mobile-first design, clear rates and policies, real property photography, accessibility, SEO, fast
+      loading and old-URL redirects.
+     Manage room and service photographs, descriptions, amenities, FAQs and contact information
+      in the administration area.
+
+4. Accommodation inventory and booking engine — CONFIRMED
+     Separate accommodation TYPE (e.g., Family Luxury, Luxury) from individually named
+      PHYSICAL ROOMS. Multiple rooms share category pricing but retain unique identity.
+     Calculate inventory for every date in a stay; one shared availability source across reception,
+      website, WhatsApp price lists and connected distribution channels.
+     Provide an interactive calendar showing occupancy, room assignments, arrivals, departures,
+      blocked rooms and availability.
+     Support manual and online reservations, multiple rooms/guests, extras, taxes, fees, coupons,
+      extensions, cancellations, no-shows, deposits and refunds.
+     Prevent overlapping room assignments with server-side transactional locking; block rooms for
+      maintenance.
+     External booking integrations (Booking.com, LekkeSlaap and other channels) must be verified
+      with the selected connectivity provider; display sync status and escalation for conflicts.
+
+5. Booking, payment and room readiness — RECOMMENDED formal
+state models
+    Domain                           Example statuses                   Required control
+
+    Booking                          Quote, Hold, Pending,              Document authorised
+                                     Confirmed, Checked-in,             transitions and inventory
+                                     Checked-out, Cancelled, No-        effects.
+                                     show
+    Payment                          Unpaid, Part-paid, Pending         Never treat proof of EFT as
+                                     verification, Paid to channel,     verified settlement.
+                                     Verified paid, Refunded
+    Room readiness                   Dirty, Cleaning, Awaiting          Checkout initiates turnover;
+                                     inspection, Ready, Occupied,       inspection controls ready
+                                     Out of service                     status.
+
+A quotation is not an invoice, and an invoice is not a receipt. Issued financial documents must
+remain auditable; adjustments use appropriate credit notes. Payment status and booking status
+must not be conflated.
+
+6. Reception dashboard and guest history — CONFIRMED
+     Reception workspace: guest registration, arrivals/departures, booking calendar, room allocation,
+      outstanding payments, service requests and issue logs.
+     Every booking confirmation/invoice can carry a separate scannable QR for reception. Within an
+      authenticated reception session, scanning retrieves the booking, prominently displays guest
+      name, room, dates, extras and account status.
+     Historical document QR references must allow authorised lookup without exposing guest details
+      publicly; use opaque IDs, permissions, audit logs and revocable public links.
+     Record key handover/return, extra towels/tissue, other guest supplies, extensions and other
+      front-desk interactions.
+     Reuse guest profiles for repeat bookings rather than retyping details; preserve
+      booking/document history.
+     Guest register and ID/document capture requirements must be validated against current law
+      and privacy obligations before deployment.
+
+7. WhatsApp-assisted booking and branded live price list —
+CONFIRMED
+1.   Customer requests accommodation via WhatsApp and provides intended dates.
+2.   Reception sends a colourful branded secure price-list link populated from current date-specific
+     availability.
+3.   Customer selects room type/room, adds breakfast/dinner or other extras, enters name, surname
+     and phone number, and sees an itemised total.
+4.   System records the request; a time-limited inventory hold may apply under approved policy.
+5.   Issue unpaid invoice or payment request containing banking details and optional secure
+     payment link.
+6.   Customer pays by manual EFT or payment gateway; staff verify manual EFT against bank
+     settlement.
+7.   On confirmed payment, update invoice to paid, issue receipt and confirm reservation; refresh
+     shared inventory.
+8.   Send document links by WhatsApp and PDF attachments by email; log communications and
+     delivery status.
+
+Do not guarantee availability merely because a price-list link was opened; revalidate inventory at
+selection and confirmation. Decide how long temporary holds last and what happens if payment
+arrives late.
+
+8. Secure guest portal: room QR + SMS links — CONFIRMED
+The room-door QR code identifies a physical room, not the identity of its occupant. The client has
+explicitly decided to KEEP both room QR codes and secure SMS portal links. Both routes use the
+same guest services backend.
+
+8.1 Mandatory QR verification
+9.   Guest scans the room QR code; only a generic verification screen appears.
+10. System identifies the active checked-in stay for that room without displaying guest identity.
+11. Send a six-digit one-time code to the phone number registered on the booking.
+12. Guest enters OTP; apply five-minute expiry, rate limits, attempt limits and anti-enumeration
+     safeguards.
+13. After successful verification, establish a per-stay secure session; allow access only to authorised
+     stay-specific services.
+14. Expire/revoke access at checkout, room reassignment or security incident; do not expose
+     previous guests’ messages to future occupants.
+
+If the registered phone is unavailable, reception must verify identity through a documented
+recovery process. Approved: a verified booker can authorise additional guest phone numbers
+through a logged, secure process; staff-assisted recovery requires identity verification. Staff should
+never see OTP values.
+
+8.2 Guest services
+    Browse menus, request/order meals, view approved prices and charge-to-room options.
+    Contact reception through an inbox with audible/visual alert and configurable escalation to
+     owner/backup if unacknowledged.
+
+   Request checkout; view itemised bill, request assistance or resolve outstanding charges before
+    final confirmation.
+   Submit reviews, ratings and photos for moderation and consent-based publication.
+   Access Wi-Fi details, house rules, facility hours, emergency information and other concierge
+    services.
+
+8.3 SMS guest journey and messaging
+   Arrival-day SMS: secure time-limited link for welcome, arrival guidance and guest portal; send
+    only under approved communication rules.
+   Departure-day SMS: secure link to review charges and initiate remote checkout.
+   Allow staff to resend or share an authorised link via WhatsApp/email when SMS fails.
+   After completed checkout, automatically send a personalised thank-you message wishing the
+    guest safe travels; optionally request feedback later.
+   Log template version, send time, delivery outcome, failures and retry events; provide guest
+    contact preferences and opt-out controls where applicable.
+
+9. Checkout, payments and room turnover — CONFIRMED +
+RECOMMENDED controls
+15. Guest initiates checkout through verified QR/SMS portal or reception.
+16. System checks folio, unpaid extras, unverified EFT, disputes and required staff approvals.
+17. If the balance is unresolved, show payment/reception options; do not silently complete
+    checkout.
+18. When checkout is approved, record departure, close the stay and revoke room-service access.
+19. Trigger thank-you/safe-travels message and create a housekeeping turnover task.
+20. Room moves to Dirty; assigned worker cleans; inspector verifies; room becomes Ready for the
+    next arrival.
+
+A zero balance is a recommended default gate, with controlled manager overrides for legitimate
+credit/corporate arrangements. The specific accounting rules need owner approval.
+
+10. Employee accounts, roles and shift scheduling — CONFIRMED
+   Roles: administrator, owner, reception, housekeeping, maintenance, inspector, content editor
+    and guest; allow multiple roles with least-privilege permissions.
+   Workers self-complete profiles including name, contact details and selfie/photo; administrator
+    approves or corrects profiles.
+   Reception allocates housekeeping jobs; authorised owner/supervisor allocates gardening and
+    maintenance jobs.
+   Workers see only their own tasks, shift schedule, notifications and attendance history.
+   Roster workers by weekday and shift; off-duty employees must not be marked absent.
+   Support leave, public holidays, authorised exceptions and coverage changes; avoid non-urgent
+    notifications to off-duty staff.
+
+11. Housekeeping and maintenance — CONFIRMED
+Routine cleaning/refresh: sweep, mop, scrub shower, make bed, replenish sugar/coffee, verify towels
+and general room readiness. Differentiate full cleaning from light refresh.
+
+Maintenance/gardening task catalogue: pressure-wash pavement; maintain plants/flowers; clean
+pool; clean VIP 1 and VIP 2; scrub fish pond; trim/cut grass; polish floors; painting; clean braai
+stands; general repairs.
+
+   Every job has location, assignee, checklist, priority, due date, completion evidence and status.
+   Track maintenance history by room/asset, preventive schedules, equipment warranties and
+    supplier costs.
+   Stock ledger for towels, toiletries, coffee, sugar, cleaning supplies and other consumables; low-
+    stock alerts.
+
+12. Monday deep clean and room inspection — CONFIRMED
+   Monday checklist: deep clean under beds; replace/refresh drinking water; clean aluminium
+    doors and windows; microwave, kettle, mirrors, floors, shower and beds.
+   Inspector receives assigned rooms, checks each criterion and scores cleanliness/condition using
+    an agreed scale.
+   Inspection produces a report and sends a result notification to the relevant worker.
+   Unsatisfactory items create rework tasks with details, due time and re-inspection; satisfactory
+    rooms can be approved ready.
+   Keep inspection history and optional photos; do not conflate cleaning completion with
+    inspection approval.
+
+13. Fingerprint attendance, staff days and exports — CONFIRMED
+goal; integration OPEN
+   Connect the existing fingerprint/face attendance device where technically supported; use the
+    confirmed Hikvision DS-K1T342MFWX-E1 and verify installed firmware, connectivity,
+    credentials and attendance-event retrieval during discovery.
+   Configure valid check-in and check-out windows (example only: before 09:00 and after 15:00);
+    calculate worked days using the published roster, approved exceptions and punch events.
+   Owners/specified authorised managers see all staff attendance; employees see only their own
+    present/absent days and weekly/monthly history.
+   Provide attendance reports and payroll-ready exports; full payroll/tax calculations are not
+    assumed in scope.
+   Protect biometric information: prefer importing attendance events rather than templates;
+    validate lawful basis, security, retention and a PIN/card/manual fallback.
+
+14. Leisure services, spa, VIP and events — CONFIRMED +
+RECOMMENDED
+   Services page and bookings for pool/braai day passes, VIP 1, VIP 2 and spa/massage
+    appointments.
+   Unlike room nights, these use time slots, capacity limits, resource availability and, for spa,
+    therapist availability.
+   Recommended: events/function hire, vouchers, packages, safety/indemnity acknowledgements
+    and service-specific cancellation rules.
+   Recommended: kitchen tickets, allergens, cut-off times and charge-to-room billing for food
+    orders.
+
+15. Owner dashboard, escalation and daily 17:00 report —
+CONFIRMED
+Every day at 17:00 Africa/Johannesburg, send the owner BOTH a push notification and an email
+containing a secure authenticated link to the full day-to-date management summary. This is a
+snapshot, not necessarily the final cash-up; a later day-close can freeze reconciled totals.
+
+   Summary: reservations, check-ins/outs, occupancy, revenue/payments, unpaid balances, staff
+    attendance, task completion, inspection scores, maintenance, complaints and unresolved guest
+    requests.
+   Urgent unanswered requests escalate independently of the daily report, using configurable
+    timers, service hours, backup contacts and emergency exceptions.
+   Define reporting metrics (occupancy, ADR, RevPAR) consistently; exclude unnecessary sensitive
+    payroll/biometric details from general owner emails.
+   Record delivery failures, retry email/push sends and allow owners to open historical reports in a
+    secure dashboard.
+
+16. Guest experience, growth and content — RECOMMENDED
+   Digital pre-check-in and clear arrival instructions; guest preferences subject to consent and
+    retention controls.
+   Automated confirmations, arrival reminders, checkout thanks and optional post-stay review
+    requests.
+   Verified-stay reviews and moderated guest photos; remove sensitive metadata from uploads.
+   Direct-booking incentives, FAQs, multilingual options where justified, accessible mobile UX and
+    search-friendly structured information.
+   Measure conversion, occupancy, source of bookings and campaign effectiveness; do not assume
+    unverified industry benchmark numbers.
+
+17. Security, compliance and operational resilience — REQUIRED
+validation
+   Role-based permissions enforced server-side; MFA for privileged and reception accounts; audit
+    trails for booking, refund, attendance and profile changes.
+   Encrypted guest and staff records, controlled document downloads, malware-checked uploads,
+    consent records, data minimisation and retention schedules.
+   QR tamper-evident signage and branded domain; opaque rotating/revocable tokens; OTP abuse
+    protection and per-stay access controls.
+   Guest register, POPIA, PAIA, tax invoice/VAT, tourism grading, marketing permissions and
+    employment rules require South African legal/accounting confirmation; do not treat reviewer
+    claims as final legal advice.
+   Backups encrypted to independent storage, tested restores, monitoring, incident response,
+    disaster recovery and read-only offline contingency for arrivals; no unsafe offline bookings.
+   Protect guests against fake payment messages: publish official communication policy and never
+    solicit card details through chat.
+
+18. Architecture alternatives and integration proof of concept —
+OPEN
+    Option                          Advantages                        Risks / discovery tests
+
+    Custom Laravel platform         Full product control; unified     OTA connectivity, inventory
+                                    workflows and data model          reliability, maintenance
+                                                                      burden, integration
+                                                                      certification.
+    Hybrid PMS/channel              Proven distribution/calendar      API coverage, vendor lock-in,
+    manager + Laravel modules       core and faster OTA               pricing, data sync, ability to
+                                    connectivity                      extend workflow.
+
+Request agency comparison of both options, including NightsBridge or another suitable provider
+where applicable. Verify Booking.com/LekkeSlaap/Airbnb support, API access, sandbox, webhooks,
+rate limits, data ownership, reconciliation and outage behaviour before selecting the system of
+record.
+
+19. Delivery roadmap — PROPOSED, not a feature cancellation
+    Phase                           Deliverables                      Exit criteria
+
+    0 — Discovery                   Architecture comparison,          Signed architecture and tested
+                                    device/API/payment/SMS            integrations.
+                                    proofs of concept, data audit,
+                                    policies, state models, cost
+                                    plan
+    1 — Launch foundation           Public site/CMS, central          Parallel-run pilot, security
+                                    booking calendar, reception,      checks, UAT and staff training.
+                                    guest register, documents,
+                                    WhatsApp price-list workflow,
+                                    payments, roles, 17:00 owner
+                                    report, backups; basic verified
+                                    guest portal if feasible
+    2 — Guest & operations          Full QR/SMS concierge,            Operational acceptance and
+                                    checkout automation,              stable workflows.
+                                    housekeeping, Monday
+                                    inspections, maintenance,
+                                    escalations, leisure/spa/VIP
+    3 — Workforce &                 Attendance integration, shifts,   Verified device/compliance,
+    optimisation                    advanced reporting, growth        measured operational value.
+                                    features and selected channel
+                                    expansion
+
+All confirmed features remain in the product scope; final phase assignment is subject to cost and
+dependencies. Do not represent a later-phase feature as deleted.
+
+20. Out-of-scope unless separately approved
+     Full payroll/tax calculation; full general-ledger accounting; hardware POS implementation;
+      custom AI dynamic pricing; building a new OTA channel manager from scratch.
+     These exclusions do not remove attendance exports, invoices/receipts, service charges, or
+      external connectivity through supported providers.
+
+21. Agency quotation, governance and handover requirements
+   Itemise fixed-price discovery, phase costs, milestones, assumptions, acceptance tests, exclusions
+    and change-control procedure.
+   Provide three-year total cost of ownership: hosting, PMS/channel manager, payment processing,
+    SMS/OTP, WhatsApp API, email, backups, monitoring, domains, support and hardware.
+   Guesthouse must own or control domain, cloud, source repository, payment, messaging and
+    data accounts; specify exit/export procedure and licensing.
+   Include data migration from the existing website/booking system, URL redirects, staging, UAT,
+    staff training, admin manuals, backup-restore drill and post-launch support.
+   Name a client-side product decision-maker and document all accepted/rejected change requests.
+
+22. Open questions for final reviewer sign-off — see updated Section
+27
+1. Which PMS architecture is preferred after proof-of-concept and three-year cost comparison? —
+Decision: __________________________
+
+2. Which OTAs must connect on day one (Booking.com, LekkeSlaap, Airbnb or others)? — Decision:
+__________________________
+
+3. Who is authorised to receive the QR OTP when the booker and room occupant differ? What if
+multiple occupants share one room? — Decision: __________________________
+
+4. How long should price-list holds last? What happens to late EFT payments? — Decision:
+__________________________
+
+5. Which payment methods are offered and which, if any, is shown first? — Decision:
+__________________________
+
+6. Which SMS/WhatsApp provider and message consent policy will be adopted? — Decision:
+__________________________
+
+7. Which attendance device model and fallback method are required? — Decision:
+__________________________
+
+8. Which employees/owners may override checkout balances, refunds, room readiness or inspection
+failures? — Decision: __________________________
+
+9. What room categories, room names, rates, seasonal pricing and service capacities exist? —
+Decision: __________________________
+
+10. What are the house rules, check-in/out times, cancellation, deposit and no-show policies? —
+Decision: __________________________
+
+11. What is the budget and maximum three-year operating cost? — Decision:
+__________________________
+
+12. Who signs off scope and acceptance testing? — Decision: __________________________
+
+23. Traceability and review sources
+   Original project discovery and Version 1 brief (17 Nov 2026): public site, accommodation
+    inventory, reception, QR services, staffing and operations.
+   Version 3 Requirements and Research (18 pages): integrated original requirements and
+    hospitality best-practice additions.
+
+   Version 4 Requirements Brief (21 pages): Version 3 plus post-stay thank-you, owner report and
+    recommended enhancements.
+   Feedback submission 1: “Guesthouse Platform: Review Pack and Recommended Additions”
+    (Claude, 18 Nov 2026).
+   Feedback submission 2: “Guesthouse Platform Review & Final Strategy Pack” (18 Nov 2026).
+   Client decision after feedback: retain BOTH room QR and SMS links; require OTP to booking
+    phone for in-house QR access.
+
+Source caution: Reviewer-supplied pricing, law, technical API restrictions and benchmark claims are
+leads for verification, not guaranteed current facts. This document intentionally does not label
+reviewer proposals “approved” unless the client has explicitly approved them.
+
+24. Final review response sheet
+Reviewer name / role: ________________________________________   Date: __________________
+
+Overall verdict: [ ] Approve for agency pricing [ ] Approve with changes [ ] Rework
+
+Required changes, risks, missing workflows and priorities:
+
+________________________________________________________________________________
+
+________________________________________________________________________________
+
+________________________________________________________________________________
+
+________________________________________________________________________________
+
+________________________________________________________________________________
+
+Sign-off / comments: ____________________________________________________________________
+
+25. Version 5.2 — approved implementation clarifications
+   Exact room commitment: the booking engine must reserve a specific physical room at booking
+    time; enforce transactional uniqueness across date ranges. For external channels that transmit
+    category-level bookings, map the confirmed reservation immediately to an available physical
+    room or flag an exception for staff before promising the assignment. Reassignments require
+    reason, authorisation and audit trail.
+   Extensive communications: automate booking enquiries, price-list follow-up, unpaid invoices,
+    payment confirmation, arrival information, service alerts, departure-day reminders, farewell
+    messages, feedback requests, and owner escalation where appropriate. Distinguish operational
+    from marketing messages; support templates, language, guest preferences, consent, delivery
+    status, throttling, retry limits and provider costs.
+   QR and SMS access: both channels lead to the same stay-bound guest portal. Room QR requires
+    OTP to the booking phone. Verified booker can add authorised guest numbers; authorisations
+    are logged and revocable. A phone number alone is not proof of room entitlement. Staff-assisted
+    recovery must verify identity.
+   Attendance rules: administrators configure valid clock-in and clock-out windows per shift.
+    Compare device events against assigned roster, leave and rest days. Show worked, absent, late,
+    incomplete, off-duty and pending-review statuses; calculate days worked for exports, with
+    authorised manual corrections and audit trail.
+   Financial controls: Instant EFT appears first but manual EFT and card payments remain
+    available. Do not treat proof of payment as bank settlement. Dual-approve refunds, retain
+    immutable document records and produce reconciliation exports.
+
+   No offline booking commitments: securely cached arrival and room information is read-only
+    with access controls, encryption, expiry and sync indicators; staff must not confirm new
+    reservations without online availability verification.
+
+26. Confirmed attendance hardware — integration requirements
+Installed device: Hikvision DS-K1T342MFWX-E1 Face Recognition Terminal. This is existing
+equipment and must be retained. Source: manufacturer datasheet, DS-K1T342MFWX-E1, V1.0 (3
+August 2023), supplied by client.
+
+   Authentication supported by datasheet: face, fingerprint, M1 card and personal PIN. Capacity:
+    1,500 faces, 3,000 fingerprints, 3,000 cards and 150,000 stored events.
+   Connectivity and integration indicated by datasheet: Ethernet 10/100, Wi-Fi, ISAPI and ISUP 5.0.
+    Supports time synchronisation. These advertised interfaces do not, by themselves, prove a
+    working attendance API on the deployed firmware.
+   Phase 0 proof of concept: obtain installed firmware/version and network details; verify
+    authorised device access; test reading a sample punch with timestamp and employee ID; test
+    repeated polling/event duplication, outages and recovery; document any gateway or on-premise
+    connector required.
+   Keep biometric templates on the terminal/approved biometric management system rather than
+    copying them into the guesthouse web database. Import only necessary attendance events and
+    employee mapping, with POPIA/privacy review and appropriate access control.
+   PIN/card fallback must remain available as an approved attendance method. Match all device
+    identities to employee profiles and shifts; preserve raw punches and derived attendance
+    calculations separately.
+   Acceptance test: a test employee punches in and out on the existing device; the correct shift and
+    date appear in employee and manager dashboards, including late/incomplete/off-day edge cases,
+    and weekly/monthly payroll-ready exports.
+
+27. Remaining decisions and final reviewer checklist
+   PENDING — Reservation hold durations, expiry, late EFT payment handling and authorised
+    exceptions.
+   PENDING — Development budget ceiling and three-year operating budget ceiling.
+   PENDING — Named product owner / authorised final approver.
+   PENDING — Guesthouse policies: arrival/departure hours, deposit, cancellation, no-show,
+    refunds, house rules.
+   PENDING — Final room names, categories, occupancy, prices, seasons, service capacities and
+    schedules.
+   PENDING TECHNICAL VALIDATION — Custom Laravel vs hybrid PMS/channel manager;
+    Booking.com/LekkeSlaap connectivity; actual Hikvision attendance event integration; messaging
+    provider capabilities and costs; local regulatory/tax obligations.
+   FINAL REVIEW REQUEST — Reviewers should flag omissions, contradictory workflows,
+    security/privacy issues, operational usability problems, unverified assumptions and
+    cost/schedule risks. Do not reinterpret pending matters as approved.
+
+VERSION 5.3 — FINAL REVIEW
+INTEGRATION & DECISION CONTROL
+18 November 2026 | Consolidated agency-review edition | Supersedes conflicting wording in
+Version 5.2 while retaining its complete functional requirements.
+
+Source documents: Reviewer A — “Consolidated Strategic Review & Agency Preparation Pack —
+Version 5.2 Edition” (uploaded as 1.pdf); Reviewer B — “Guesthouse Platform V5.2 — Best-Practice
+Review” (uploaded as 2.pdf). Reviewer suggestions are not client approvals. Where they disagree
+with approved client decisions, the client decision governs.
+
+28. Executive synthesis — final reviewers
+Both reviewers consider the Version 5.2 baseline substantially ready for agency pricing, subject to
+discovery and proof-of-concept gates. Their highest-risk findings concern external channel
+connectivity, named-room assignment versus category inventory, financial event reconciliation,
+biometric attendance privacy, SMS/WhatsApp operating costs, and OTP abuse.
+
+Version 5.3 adopts operational and security controls as design requirements; it does NOT
+automatically approve a hybrid architecture, a specific channel manager, a hold duration, legal
+interpretations, service providers, or new budgets.
+
+29. Approved client decisions — unchanged
+   Architecture: compare custom Laravel and hybrid PMS/channel manager in Phase 0; do not
+    preselect the winner.
+   External booking platforms approved for scope: Booking.com and LekkeSlaap. Airbnb is a
+    possible future enhancement, not an approved day-one integration.
+   Room assignment: allocate a specific named physical room immediately upon confirmed
+    booking. Preserve category-based inventory and a separate auditable room-assignment layer;
+    auto-assign OTA category bookings to a specific available room or flag exceptions.
+   Guest portal: retain BOTH physical in-room QR codes and secure SMS links; require SMS OTP to
+    the booking phone for QR access; verified booker may authorise secondary occupant phone
+    numbers.
+   Payments: Instant EFT first; manual EFT and card payment options retained. Automated
+    WhatsApp and SMS communications are in scope.
+   Attendance: retain Hikvision DS-K1T342MFWX-E1 with face/fingerprint and PIN/M1 card
+    fallback, subject to actual firmware integration tests.
+   Financial approvals: owner/authorised manager controls sensitive overrides; refunds require
+    dual approval and audit history.
+   Phased delivery with acceptance gates; encrypted read-only reception cache during outages, no
+    offline booking confirmations; attendance/financial exports but no full payroll or general ledger.
+   Daily owner report: email with secure dashboard link and push notification at 17:00
+    Africa/Johannesburg; guest checkout farewell and safe-travels message.
+
+30. Channel connectivity and architectural discovery — REQUIRED
+PROOF
+Phase 0 must compare (A) custom Laravel booking/operations with a commercially supported
+channel manager and (B) a hybrid PMS/channel manager with custom Laravel modules. A fully
+bespoke OTA connector is not presumed feasible. NightsBridge, Rentals United and NextPax are
+candidate providers only; agencies must substantiate current Booking.com and LekkeSlaap support,
+commercial terms, rate/availability update behaviour, sandbox access, webhooks, and contract
+exit/data export.
+
+Determine which system owns authoritative availability, how conflicts and delayed/pull-based
+updates are handled, and how each external reservation maps to a named physical room. Provide
+scheduled reconciliation, alerting, stale-sync warnings, retries, and an overbooking exception queue.
+Do not claim guaranteed real-time synchronisation without provider evidence.
+
+Required vertical-slice demonstration: OTA/direct booking → inventory/room assignment → payment
+status → invoice/receipt → check-in/check-out → housekeeping task, with retries and exception
+scenarios.
+
+31. Booking and physical-room data model — IMPLEMENTATION
+RULE
+   Sell and price by accommodation category and date, but persist each booking’s named physical-
+    room assignment as a separate audited record made at booking time.
+   Enforce room/date exclusion transactionally; use category-night inventory calculations,
+    maintenance blocks and concurrency tests.
+   For OTA category-only bookings, automatically allocate an eligible room immediately when
+    ingested; if none can be safely allocated, quarantine and alert staff rather than silently
+    overbook.
+   Room reassignment is authorised, audited, and updates guest portal entitlements and
+    housekeeping assignments; distinguish booking status, payment status and room-readiness
+    status.
+   Reservations arriving after a hold has expired must re-check inventory before confirmation; late
+    EFTs require a documented rebooking/refund path.
+
+32. Hikvision attendance integration and workforce privacy
+Confirmed model spelling: Hikvision DS-K1T342MFWX-E1. Manufacturer datasheet states 150,000
+events; a reviewer found a conflicting reseller claim of 100,000. Use the manufacturer datasheet as
+the provisional specification and confirm on installed firmware/device during Phase 0.
+
+Use wired Ethernet where practical, time synchronisation, and UPS protection for
+device/router/reception equipment. Test ISAPI/ISUP event retrieval, event pagination, missing
+records, network outages, restart recovery, time-zone handling and employee mapping.
+
+Keep raw device punches distinct from derived check-in/out, lateness and absence decisions. Import
+idempotently using a robust composite identity and deduplication strategy (not sequence numbers
+alone); retain source event identifiers where available. Biometrics stay on the authorised
+device/controller, not the Laravel database.
+
+Offer PIN/M1 card as a genuine non-punitive attendance alternative. Publish an employee privacy
+notice, access controls, correction procedure, lawful-basis assessment and retention schedule, to be
+reviewed for POPIA compliance.
+
+33. OTP, guest access and messaging controls
+   Room-door QR codes identify rooms only; never reveal occupant names or booking details
+    before verification. Use six-digit OTP, five-minute expiry, attempt/rate limits, anti-enumeration
+    and anti-SMS-pumping monitoring.
+   OTP goes to the original booking number or an additional number explicitly authorised by the
+    verified booker; log authorisation and revocation. If SMS is unavailable, permit controlled
+    reception recovery; evaluate WhatsApp/email OTP as optional alternative channels after
+    identity and security review.
+   Bind sessions to active stay and permitted room; revoke upon checkout, room reassignment or
+    security incident. Protect historical invoice QR lookup separately behind reception
+    authentication.
+   Use approved WhatsApp templates/API for transactional automations, plus click-to-chat for
+    informal enquiries where useful. Track delivery failures, retries, opt-outs/consent and
+    templates. Phase 0 must obtain provider quotes and set per-message budget forecasts, abuse
+    alerts and a monthly spend cap.
+   Guest checkout must check folio and unresolved charges; use an approved manager exception
+    for legitimate credit arrangements. On completion, issue farewell message and housekeeping
+    turnover; do not duplicate messages on retries.
+
+34. Payments, financial integrity and holds
+   Start with one gateway where practicable to simplify webhook reconciliation; retain Instant
+    EFT, ordinary EFT and card options as approved.
+   Verify gateway signatures, idempotency and missing/duplicate/out-of-order webhook handling.
+    Run scheduled settlement reconciliation. Proof of EFT is not verified payment.
+   Separate quotation, issued invoice, receipt, credit note and payment ledger. Corrections use
+    audited adjustments rather than silently overwriting issued financial documents.
+   Reservation holds are STILL PENDING client approval. Reviewers propose two-hour
+    online/WhatsApp holds and 12–24-hour manual EFT holds; a second reviewer recommends
+    varying holds with arrival proximity. These are proposals only.
+   Refunds require dual approval; record reason, approvers, gateway transaction, reversal and
+    reconciliation status.
+
+35. Guest services, housekeeping and physical operations —
+ENHANCEMENTS
+   Introduce a key/key-card handover and return log linked to each stay, including lost-key
+    incidents and authorised access exceptions. Self-check-in and smart-lock integration remain
+    optional and require separate approval.
+   Consider ingesting Booking.com/LekkeSlaap guest messages into the unified inbox if provider
+    APIs/contracts permit; otherwise provide staff with a clear manual handoff workflow.
+   Add estimated cleaning effort by room type and task type, configurable by managers, to support
+    fair staff rosters and Sunday laundry workloads.
+
+   Keep Monday deep-clean checklist and inspection scores, rework notifications and sign-off by
+    authorised inspector/owner; record before/after photos where appropriate.
+   Day passes, braai, swimming pool, VIP 1/VIP 2, spa and restaurant extras need service inventory,
+    booking capacities, time slots, charge-to-room and incident workflows.
+
+36. Compliance verification register — NOT LEGAL ADVICE
+Reviewer A recommends guest-register fields, a two-year retention period, VAT/tax invoice rules,
+PAIA/POPIA notices, TGCSA grading controls and optional tourism levies. Reviewer B likewise cites
+immigration guest-register rules and biometric protections. These are reviewer assertions to be
+validated against current South African law by qualified legal/tax advisors before launch.
+
+Implement configurable retention and restricted access, legal-hold exceptions, documented
+deletion/anonymisation, and a register capture workflow after legal sign-off. Do not hardcode an
+unverified two-year deletion rule or any tax thresholds into production.
+
+Only display official tourism grading stars when documentary evidence of valid grading exists;
+publish an anti-phishing policy and never request payment-card credentials over chat.
+
+37. Proposed delivery gates — not client-approved release dates
+   Phase 0: channel-manager/PMS comparison; Hikvision live-event proof;
+    payment/OTP/WhatsApp provider trials; legal gap review; vertical-slice demo; TCO; signed
+    architecture decision.
+   Phase 1: website, CMS, shared booking calendar, exact-room allocation, reception, guest register,
+    financial documents/payments, WhatsApp live price lists, arrival/departure SMS journey, 17:00
+    owner reporting, backups and pilot.
+   Phase 2: secure in-room QR portal, service orders, checkout automation, housekeeping and
+    inspections, guest inbox/escalation, day-pass/VIP/spa and charge-to-room workflows.
+   Phase 3: attendance/rosters and payroll-ready exports, advanced analytics, preferences,
+    seasonal/corporate rates, improved offline cache and growth features.
+   Phase placement is proposed for quoting, not a cancellation of confirmed scope. Attendance
+    integration must be feasibility-tested in Phase 0 even if production rollout is Phase 3. Each phase
+    requires security, UAT, staff training and written sign-off.
+
+38. Agency procurement, handover and acceptance
+   Request separately itemised fixed-price quotations for Phase 0 and each delivery phase,
+    assumptions, exclusions, change requests and ongoing support.
+   Provide a three-year total-cost-of-ownership schedule covering PMS/channel manager, hosting,
+    backups, SMS/OTP, WhatsApp, email, gateway fees, monitoring, support and hardware/UPS.
+   Guesthouse retains control of source code/repository, domain, hosting, databases, payment and
+    messaging accounts, and receives export/exit procedures and handover documentation.
+   Test simultaneous booking race conditions, OTA stale inventory, delayed EFT, duplicate
+    webhooks, OTP pumping, no-SMS guests, missing attendance events, off-duty absences, power
+    failure, backup restore and role permissions.
+   Require parallel-run migration and verified historical guest, booking and financial records from
+    the existing system.
+
+39. Final pending decisions — CLIENT APPROVAL REQUIRED
+   Reservation hold durations, arrival-dependent variations, expiry, late-payment and refund
+    policy.
+   Final architecture after Phase 0: custom Laravel + channel manager versus hybrid PMS/channel
+    manager + Laravel.
+   Development budget ceiling, three-year operating-cost ceiling and named product approver.
+   Room names/categories, occupancy, seasonal pricing, service inventory/capacity and actual
+    schedules.
+   Guesthouse house rules, check-in/out, cancellation/no-show, deposits, credit accounts and
+    exception authority.
+   Selection of channel manager, gateway, SMS/OTP and WhatsApp providers after
+    demonstrations, quotes and data/privacy review.
+   Optional alternative OTP delivery, OTA inbox integration, smart locks and additional OTA
+    channels; these are not automatic approvals.
+
+40. Reviewer reconciliation and traceability
+Reviewer A (1.pdf): international benchmarks; strong hybrid preference; named-room locking; zero-
+balance checkout; statutory checklist; phased procurement; proposed 2-hour/12–24-hour holds.
+Incorporated as controls or proposals, not blanket client approvals.
+
+Reviewer B (2.pdf): channel connectivity feasibility; category inventory plus named-room
+assignment layer; biometric consent/privacy and robust event import; messaging cost caps; OTP
+alternatives; gateway reconciliation; key control, OTA inbox, UPS and cleaning workload.
+Incorporated as design requirements or explicitly optional discovery items.
+
+Reconciled tensions: architecture remains undecided despite reviewers favouring hybrid; Airbnb is
+not an approved initial channel; named-room assignment at booking remains mandatory while
+category inventory remains the sales model; holds remain undecided; PIN/card is a genuine fallback;
+no reviewer sign-off substitutes for client sign-off.
+
+41. Final review / sign-off form
+Reviewer / role: __________________________________________ Date: __________________
+
+Decision: [ ] Approve for agency RFP [ ] Approve with changes [ ] Further revision required
+
+Mandatory changes and evidence requested: __________________________________________________
+
+_________________________________________________________________________________________
+
+Client final approval (name / signature / date): ______________________________________________
+
+

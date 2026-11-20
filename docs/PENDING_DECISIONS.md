@@ -1,0 +1,20 @@
+# Pending client decisions
+
+Seeded from `FINAL_SPECIFICATION.md` §3.2. Items with a setting show up in **Admin › Settings › System settings** with a warning until the client decides.
+
+| Ref | Decision needed | Setting key(s) | Current build behaviour |
+|---|---|---|---|
+| PEND-01 | Hold durations | `booking.hold_minutes_online` (30, development default), `booking.hold_hours_manual_eft` (empty) | Not built yet (M2). |
+| PEND-02 | Late EFT after a hold expires | — | Not built yet (M4). |
+| PEND-03 | Card vs ordinary EFT order | `payments.method_order` | Instant EFT → Card → EFT, configurable. |
+| PEND-04 | Rooms, rates, contact details | `contact.*` (empty) | Nothing invented. Public site shows a DEMO banner. |
+| PEND-05 | Policies, check-in/out times | `booking.check_in_time`, `booking.check_out_time` (empty) | Empty. |
+| PEND-06 | Override authority | — | To do (M4/M5): Owner only by default. |
+| PEND-07 | Providers (payment, SMS, WhatsApp, channel manager) | `messaging.monthly_cap_*` (empty) | Interfaces + fake drivers to come. |
+| PEND-08 | Custom Laravel vs hybrid PMS | — | Custom Laravel behind interfaces. |
+| PEND-09 | Budgets, named approver | — | Not a build item. |
+| PEND-10 | Website languages | — | English only. |
+| PEND-11 | Retention periods | — | Nothing deleted automatically. |
+| PEND-12 | Escalation timers | `escalation.backup_minutes` (10), `escalation.owner_minutes` (30) | Recommended defaults. |
+| PEND-13 | Non-functional targets | — | FINAL_SPECIFICATION §20 values used as design targets. |
+| PEND-14 | Optional extras | — | Off by default. |
