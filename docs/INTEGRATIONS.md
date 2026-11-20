@@ -4,7 +4,7 @@ No outside service is live. Every integration sits behind an interface with a fa
 
 | Integration | Interface | Driver now | Status | Spec |
 |---|---|---|---|---|
-| Payment gateway (Ozow / PayFast / Yoco candidates) | `PaymentGateway` | fake | Not built (M4) | PAY-05, PAY-06 |
+| Payment gateway (Ozow / PayFast / Yoco candidates) | `PaymentGateway` | **fake** (`/dev/fake-gateway`, HMAC-signed webhooks, refuses production) | Interface, webhook pipeline and refunds built (M4). Real adapter waits for provider choice. | PAY-05, PAY-06 |
 | SMS / OTP | `SmsProvider` | log | Not built (M6) | MSG-01, GST-02 |
 | WhatsApp | `WhatsAppProvider` | log | Not built (M6) | MSG-01, WA-06 |
 | Email | Laravel mail | `log` mailer | Active locally (log only) | MSG-01 |

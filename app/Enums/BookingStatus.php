@@ -45,7 +45,9 @@ enum BookingStatus: string
             self::Pending => [self::Confirmed, self::Cancelled, self::Expired],
             self::Confirmed => [self::CheckedIn, self::Cancelled, self::NoShow],
             self::CheckedIn => [self::CheckedOut],
-            self::CheckedOut, self::Cancelled, self::NoShow, self::Expired => [],
+            // PEND-02: a hold that expired can be reinstated once its rooms are re-claimed (ReinstateBooking).
+            self::Expired => [self::Confirmed],
+            self::CheckedOut, self::Cancelled, self::NoShow => [],
         };
     }
 

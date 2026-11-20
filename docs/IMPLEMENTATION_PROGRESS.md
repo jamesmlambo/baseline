@@ -7,7 +7,8 @@ New session? Read `docs/MASTER_PROMPT.md`, `docs/FINAL_SPECIFICATION.md` and thi
 - **Milestone 1 — Foundation:** done.
 - **Milestone 2 — Rooms & booking engine:** done (engine and admin screens). There is no booking UI yet: bookings are created through `PlaceBooking`, and the screens come in M4/M5.
 - **Milestone 3 — Public website:** done (all 20 pages, CMS, SEO, redirects, enquiries).
-- **Next:** **Milestone 4 — Reservations & finance** (online booking flow with payment, guest profiles, quotations/invoices/receipts, EFT verification, refunds; FINAL_SPECIFICATION §8–9). This replaces the M3 "booking request" with real online booking.
+- **Milestone 4 — Reservations & finance:** done (online booking + fake payment provider, guest profiles, extras, quotations/invoices/receipts/credit notes, EFT verification, dual-approval refunds, admin screens).
+- **Next:** **Milestone 5 — Reception** (dashboard, room-by-date calendar, check-in/out, guest register, key log, document QR scanner, offline read-only cache; FINAL_SPECIFICATION §11–12).
 
 ## Environment
 
@@ -97,3 +98,46 @@ Done: PostgreSQL, Laravel Boost, Filament 5 panels `/admin` and `/staff` with TO
 - Taxes and fees: M4 finance.
 - Room readiness status (Dirty/Ready…): M8 housekeeping.
 - Booking list and calendar UI: M4/M5.
+
+## Milestone 4 — Reservations & finance (21–22 Nov 2026)
+
+### Online booking (website)
+`/check-availability` → **Book this room** → `/book` (extras, guest details, payment method with Instant EFT first, terms, optional marketing consent) → held booking + invoice + "payment needed" email → `/booking/{token}` (pay or EFT instructions) → payment provider → confirmation page and email with receipt.
+- Holds use `booking.hold_minutes_online` (30-minute dev default, PEND-01). The guest sees the exact deadline.
+- EFT is only offered once banking details are set in **Settings** (never invented). Proof of EFT sets **Pending verification** and does **not** confirm.
+- Guest pages, invoice and receipt PDFs use unguessable 48-character tokens; no personal data in URLs.
+
+### Payments
+- `PaymentGateway` interface + **fake** driver (`config/payments.php`, refuses to run in production). In development the guest goes to `/dev/fake-gateway` with **Approve / Decline / Cancel**, which sends an HMAC-signed webhook through the real webhook pipeline.
+- `WebhookProcessor`: signature check (401), each event once (duplicates → 200 "duplicate"), a late failure never undoes a success, amount mismatch → "Needs attention".
+- `PaymentLedger`: only **Succeeded** counts as money. Updates booking payment status, confirms the booking once verified payments reach the deposit (`payments.deposit_percent`, 100% dev default, PEND-05), issues receipts.
+- **Late payments (PEND-02):** money for an expired/cancelled booking is flagged. **Reinstate** re-claims the same room (or another of the type) if free, otherwise staff refund.
+- **EFT verification:** Owner/Manager/Admin only, with the bank statement reference and amount. Reception records cash (received immediately) or EFT (pending).
+- **Refunds (DEC-06):** one person requests, a different authorised person approves (also enforced by a DB CHECK). Approval refunds via gateway or records an EFT refund, issues a credit note and updates the booking.
+
+### Documents
+Separate tables for quotations, invoices, receipts, credit notes. Gap-free numbers per type (`INV-000001`, `REC-…`, `QUO-…`, `CRN-…`). Issued documents and their lines cannot be edited or deleted (`ImmutableDocumentException`). Quotation → invoice conversion without retyping. VAT only added if `payments.vat_rate_percent` is set (VERIFY). PDFs via dompdf with the built-in Helvetica font (~2 KB each), DEMO watermark outside production.
+
+### Guests
+Profiles with encrypted email/phone and keyed lookup hashes; returning guests matched by email or phone (BOOK-06). SA phone numbers stored as +27…. Search by name or exact email/phone in admin.
+
+### Admin
+- **Bookings › Bookings:** list (default: active bookings), view (rooms, extras, money, history), **New booking** (front desk: specific room optional, staff-chosen hold expiry), buttons: Record payment, Reinstate, Issue quotation, Cancel (reason), Confirm without payment (**Owner only**, PEND-06).
+- **Bookings › Extras** (breakfast, dinner…).
+- **Front desk › Guests, Payments** (queue of EFTs to verify + exceptions), **Refunds** (approve/reject; approve hidden from the requester).
+
+### Settings added (Admin › Settings)
+`payments.deposit_percent`, bank name/account name/number/branch (empty), `payments.vat_number`, `payments.vat_rate_percent` (empty, VERIFY), `payments.invoice_due_days`.
+
+### Demo data
+`DemoAccommodationSeeder` now also adds "Demo breakfast" (R150) and "Demo dinner" (R250) per guest per night.
+
+### Checked in the browser
+Full flow on the local server: booking BL-U5KXFA (Demo Standard Room + breakfast, R2 400) → fake Instant EFT → confirmed, "Verified paid", invoice INV-000001 and receipt REC-000001 downloadable. Found and fixed: fake provider page buttons invisible until `npm run build`; PDFs ~880 KB (now ~2 KB); return page lost its flash message.
+
+### Not yet (by design)
+- Real payment provider (PEND-07); coupons/discounts; booking amendments (date changes, extensions — M5); guest folio and charge-to-room (M7/M10); WhatsApp/SMS messages (M6). Emails currently go to the `log` mailer.
+- PDF layout not yet checked visually by a person.
+
+### Tests
+186 passing.

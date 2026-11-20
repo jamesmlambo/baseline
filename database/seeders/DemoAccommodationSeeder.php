@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Enums\ExtraPricingUnit;
 use App\Models\AccommodationType;
+use App\Models\Extra;
 use Illuminate\Database\Seeder;
 use RuntimeException;
 
@@ -42,6 +44,8 @@ class DemoAccommodationSeeder extends Seeder
                 'is_demo' => true,
             ]);
 
+            $this->seedExtras();
+
             for ($i = 0; $i < $definition['rooms']; $i++, $roomNumber++) {
                 $type->rooms()->updateOrCreate(['code' => sprintf('DEMO%02d', $roomNumber)], [
                     'name' => sprintf('Demo Room %02d', $roomNumber),
@@ -50,6 +54,27 @@ class DemoAccommodationSeeder extends Seeder
                     'is_demo' => true,
                 ]);
             }
+        }
+    }
+
+    /**
+     * Breakfast and dinner are named in SPEC v5.3 §7; the prices here are placeholders.
+     */
+    private function seedExtras(): void
+    {
+        foreach ([
+            ['Demo breakfast', ExtraPricingUnit::PerGuestPerNight, 15_000, 1],
+            ['Demo dinner', ExtraPricingUnit::PerGuestPerNight, 25_000, 2],
+        ] as [$name, $unit, $price, $order]) {
+            Extra::query()->updateOrCreate(['name' => $name], [
+                'description' => 'DEMO — price and menu to be confirmed.',
+                'pricing_unit' => $unit,
+                'price_cents' => $price,
+                'is_active' => true,
+                'is_bookable_online' => true,
+                'is_demo' => true,
+                'sort_order' => $order,
+            ]);
         }
     }
 }

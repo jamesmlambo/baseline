@@ -7,8 +7,8 @@ require_once __DIR__.'/../Bookings/BookingTestHelpers.php';
 use App\Enums\EnquiryStatus;
 use App\Enums\EnquiryType;
 use App\Models\AccommodationType;
+use App\Models\Booking;
 use App\Models\Enquiry;
-use App\Models\RoomNight;
 use App\Models\Setting;
 use App\Notifications\NewWebsiteEnquiry;
 use Database\Seeders\SettingSeeder;
@@ -112,33 +112,6 @@ it('refuses searches in the past', function (): void {
         ->assertSessionHasErrors('arrival');
 });
 
-it('turns a booking request into an enquiry that holds no room', function (): void {
-    $type = AccommodationType::factory()->withRooms(1)->create(['base_nightly_rate_cents' => 90_000]);
-
-    $this->get(route('book', ['type' => $type->id, 'arrival' => '2027-05-01', 'departure' => '2027-05-03', 'adults' => 2]))
-        ->assertOk()
-        ->assertSee('Your room is not reserved yet')
-        ->assertSee('R 1 800.00');
-
-    $this->post('/book', [
-        'accommodation_type_id' => $type->id,
-        'arrival' => '2027-05-01',
-        'departure' => '2027-05-03',
-        'adults' => 2,
-        'children' => 0,
-        'name' => 'Sipho Demo',
-        'phone' => '082 000 0000',
-        'accept_terms' => '1',
-    ])->assertRedirect('/')->assertSessionHas('status');
-
-    $enquiry = Enquiry::query()->sole();
-
-    expect($enquiry->type)->toBe(EnquiryType::BookingRequest)
-        ->and($enquiry->quoted_total_cents->cents)->toBe(180_000)
-        ->and($enquiry->arrival_date->toDateString())->toBe('2027-05-01')
-        ->and(RoomNight::query()->count())->toBe(0);
-});
-
 it('requires guests to accept the booking policies', function (): void {
     $type = AccommodationType::factory()->withRooms(1)->create();
 
@@ -147,9 +120,14 @@ it('requires guests to accept the booking policies', function (): void {
         'arrival' => '2027-05-01',
         'departure' => '2027-05-03',
         'adults' => 2,
-        'name' => 'Sipho Demo',
+        'first_name' => 'Sipho',
+        'last_name' => 'Demo',
+        'email' => 'sipho@example.test',
         'phone' => '082 000 0000',
+        'payment_method' => 'instant_eft',
     ])->assertSessionHasErrors('accept_terms');
+
+    expect(Booking::query()->count())->toBe(0);
 });
 
 it('refuses a party too big for the room', function (): void {
@@ -160,10 +138,13 @@ it('refuses a party too big for the room', function (): void {
         'arrival' => '2027-05-01',
         'departure' => '2027-05-03',
         'adults' => 4,
-        'name' => 'Big Party',
+        'first_name' => 'Big',
+        'last_name' => 'Party',
+        'email' => 'party@example.test',
         'phone' => '082 000 0000',
+        'payment_method' => 'instant_eft',
         'accept_terms' => '1',
     ])->assertSessionHasErrors('adults');
 
-    expect(Enquiry::query()->count())->toBe(0);
+    expect(Booking::query()->count())->toBe(0);
 });

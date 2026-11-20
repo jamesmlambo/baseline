@@ -42,7 +42,7 @@
                             </p>
                             <a href="{{ route('book', ['type' => $result->type->id, 'arrival' => $stay->arrivalString(), 'departure' => $stay->departureString(), 'adults' => $adults, 'children' => $children]) }}"
                                class="relative z-10 mt-3 inline-flex rounded-full bg-lodge-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-lodge-700">
-                                Request this room
+                                Book this room
                             </a>
                         </x-site.room-card>
                     @endforeach

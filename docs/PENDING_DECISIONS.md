@@ -5,7 +5,8 @@ Seeded from `FINAL_SPECIFICATION.md` §3.2. Items with a setting show up in **Ad
 | Ref | Decision needed | Setting key(s) | Current build behaviour |
 |---|---|---|---|
 | PEND-01 | Hold durations | `booking.hold_minutes_online` (30, development default), `booking.hold_hours_manual_eft` (empty) | Every hold must have an expiry (enforced in the database). Online holds use the 30-minute development default; callers can pass a specific expiry. Expired holds are released every minute. |
-| PEND-02 | Late EFT after a hold expires | — | Not built yet (M4). |
+| PEND-02 | Late EFT after a hold expires | — | Payment is flagged "Needs attention". A Manager/Owner can **Reinstate** (only if the room or another of its type is free), otherwise refund. |
+| PEND-05b | Deposit needed to confirm | `payments.deposit_percent` (100, dev default) | Full payment confirms. Change to e.g. 50 for a deposit. |
 | PEND-03 | Card vs ordinary EFT order | `payments.method_order` | Instant EFT → Card → EFT, configurable. |
 | PEND-04 | Rooms, rates, contact details | `contact.*` (empty) | Nothing invented. Public site shows a DEMO banner. |
 | PEND-05 | Policies, check-in/out times | `booking.check_in_time`, `booking.check_out_time` (empty) | Empty. |

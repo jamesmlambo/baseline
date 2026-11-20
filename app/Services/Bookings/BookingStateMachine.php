@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Bookings;
 
 use App\Enums\BookingStatus;
+use App\Events\BookingConfirmed;
 use App\Exceptions\InvalidBookingTransitionException;
 use App\Models\Booking;
 use App\Models\BookingRoom;
@@ -36,6 +37,11 @@ class BookingStateMachine
                 throw InvalidBookingTransitionException::between($from, $to);
             }
 
+            // A booking can only hold inventory again if its rooms have actually been re-claimed.
+            if ($to->holdsInventory() && ! $from->holdsInventory() && ! $locked->activeBookingRooms()->exists()) {
+                throw new InvalidBookingTransitionException("This booking has no rooms assigned, so it cannot become {$to->label()}.");
+            }
+
             $locked->status = $to;
             $locked->save();
 
@@ -54,6 +60,10 @@ class BookingStateMachine
             ]);
 
             $booking->setRawAttributes($locked->getAttributes(), true);
+
+            if ($to === BookingStatus::Confirmed) {
+                DB::afterCommit(fn () => BookingConfirmed::dispatch($booking));
+            }
 
             return $booking;
         });

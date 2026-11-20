@@ -42,4 +42,22 @@ Only requirements that have been worked on are listed. Everything else is still 
 | WEB-10 | Enquiry fallback form + WhatsApp | Tested | `ContactController`, `BookingEnquiryController` | `EnquiryTest` |
 | CMS-01–05 | Pages, news workflow, preview, homepage posts | Tested (preview = "View" link on published pages; draft preview in M13) | Website screens, `PostWorkflow` | `WebsiteAdminTest`, `PublicSiteTest` |
 | OBK-03 | Terms required, marketing consent separate | Tested | `/book`, contact form | `EnquiryTest` |
+| BOOK-06 | Returning guests reuse their profile | Tested | `CreateReservation`, `Guest` hashes | `OnlineBookingTest` |
+| SEC-07 | Encrypted guest contact details | Tested | `Guest` casts + lookup hashes | `OnlineBookingTest`, `FinanceAdminTest` |
+| OBK-01/02 | Price summary; Instant EFT first | Tested | `/book`, `PaymentMethod::onlineOrder` | `OnlineBookingTest` |
+| OBK-04 | Proof of EFT never "paid" | Tested | `PaymentLedger` | `PaymentsTest` |
+| PAY-01 | Separate document types | Tested | Finance models | `PaymentsTest` |
+| PAY-02 | Sequential numbering, PDFs | Tested | `DocumentNumberer`, `DocumentPdf` | `PaymentsTest`, `OnlineBookingTest` |
+| PAY-03 | Issued documents immutable | Tested | `IsIssuedDocument` | `PaymentsTest` |
+| PAY-04 | Quotation → invoice | Tested | `DocumentIssuer::convertQuotation` | `PaymentsTest` |
+| PAY-05 | Gateway interface + fake driver | Tested (real provider pending PEND-07) | `PaymentGateway`, `FakeGateway` | `OnlineBookingTest` |
+| PAY-06 | Signatures, duplicates, out-of-order | Tested | `WebhookProcessor` | `PaymentsTest` |
+| PAY-07 | Manual EFT verified by authorised staff | Tested | `VerifyEftPayment` | `PaymentsTest`, `FinanceAdminTest` |
+| PAY-08 / DEC-06 | Dual-approval refunds | Tested (code + DB) | `RefundWorkflow`, CHECK | `PaymentsTest`, `FinanceAdminTest` |
+| PAY-09 | No card data stored | Implemented (hosted page only) | Gateway design | — |
+| PAY-10 | Exceptions queue, reconciliation | Implemented (queue); CSV export in M11 | Payments screen | `PaymentsTest` |
+| PEND-02 | Late EFT path | Tested | `ReinstateBooking`, exception flag | `PaymentsTest` |
+| PEND-06 | Owner-only overrides | Tested | `BookingPolicy::confirmWithoutPayment` | `FinanceAdminTest` |
+| WA-04/05 | Unpaid invoice, confirm on verified payment | Tested (WhatsApp sending in M6) | Mails, `PaymentLedger` | `OnlineBookingTest` |
+| REC-03 | Front-desk bookings and payments | Tested (check-in/out in M5) | Bookings screens | `FinanceAdminTest` |
 | SEC-08 | Upload checks, EXIF stripped | Tested (MIME + size + EXIF; antivirus interface pending) | `StripImageMetadata` | `RedirectAndMediaTest` |

@@ -28,4 +28,15 @@ Record every compatibility or design decision here (MASTER_PROMPT §0).
 | 2026-11-21 | Sitemap and redirects built in-house, not with `spatie/laravel-sitemap` | A few dozen URLs and one table; a package would add more than it saves. |
 | 2026-11-21 | `/book` saves an enquiry, not a booking, until M4 | The online booking flow needs payment rules (M4). An enquiry never claims inventory, so there's no risk of phantom holds. |
 | 2026-11-21 | Catch-all `/{slug}` for CMS pages excludes `admin`, `staff`, `stay`, `livewire`, `storage`, `up` | Stops CMS slugs shadowing app routes. Page slugs are also validated against reserved words. |
+| 2026-11-22 | Separate tables for quotations, invoices, receipts, credit notes; shared polymorphic `document_lines` | Spec requires separate entities (PAY-01) without duplicating line logic. |
+| 2026-11-22 | Document numbers from a locked `document_sequences` row inside the issuing transaction | Gap-free, race-free sequential numbers (PAY-02). |
+| 2026-11-22 | Immutability enforced in model events (`IsIssuedDocument`) | Any code path that tries to edit an issued document fails loudly (PAY-03). |
+| 2026-11-22 | Payment status derived from the payments ledger (`PaymentLedger::sync`), never typed in | One source of truth; proof of EFT can never become "paid" (PAY-07). |
+| 2026-11-22 | Webhooks: event row with unique (gateway, event_id) in its own savepoint | Idempotency without poisoning the outer transaction (PAY-06). |
+| 2026-11-22 | Dual refund approval enforced in code **and** a DB CHECK (`approved_by <> requested_by`) | DEC-06 cannot be bypassed even by a bug. |
+| 2026-11-22 | Fake payment gateway + `/dev/fake-gateway` page, not registered in production | Exercise the full flow, signatures included, with no real money until a provider is chosen (PEND-07). |
+| 2026-11-22 | `Expired → Confirmed` allowed only via `ReinstateBooking`, guarded by "rooms must be re-claimed" | Implements the PEND-02 interim rule without letting a booking hold nothing. |
+| 2026-11-22 | Guest email/phone encrypted with HMAC lookup hashes | SEC-07 and BOOK-06 together. |
+| 2026-11-22 | PDFs use built-in Helvetica | DejaVu embedding made each PDF ~880 KB; Helvetica gives ~2 KB and covers the characters used. |
+| 2026-11-22 | Reception bookings always start as a hold with a staff-chosen expiry | No uncontrolled indefinite holds while hold policy is pending (PEND-01). |
 | 2026-11-21 | Concurrency tests use `DatabaseTruncation` and a second connection | `RefreshDatabase` transactions are invisible to other connections, so a true race can't be shown with them. |
