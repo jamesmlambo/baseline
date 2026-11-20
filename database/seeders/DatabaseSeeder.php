@@ -16,12 +16,14 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             SettingSeeder::class,
+            WebsiteContentSeeder::class,
         ]);
 
         if (app()->environment('local')) {
             $this->call([
                 DevelopmentUserSeeder::class,
                 DemoAccommodationSeeder::class,
+                DemoWebsiteSeeder::class,
             ]);
         }
     }

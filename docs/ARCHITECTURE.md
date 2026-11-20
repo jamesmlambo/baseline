@@ -20,4 +20,12 @@ Record every compatibility or design decision here (MASTER_PROMPT §0).
 | 2026-11-21 | Seasonal rates use inclusive ranges, with no overlap per type (exclusion constraint) | Staff think in "first night / last night". Each night has exactly one price. |
 | 2026-11-21 | Booking status changes only through `BookingStateMachine` | One place for transition rules, history and inventory release (BOOK-03). |
 | 2026-11-21 | Rate plans deferred to M4 | The spec lists them under INV-01, but there's no client input on which plans exist. Base + seasonal rates cover pricing until then. |
+| 2026-11-21 | Local dev runs on port **8001** | Port 8000 is taken by the user's other Laravel project. |
+| 2026-11-21 | Public site is plain Blade + Tailwind, no Livewire, JS-free mobile menu (`<details>`) | Fast, accessible and cacheable. Livewire comes in where interactivity is needed (M4 booking flow, M7 guest portal). |
+| 2026-11-21 | Media via `spatie/laravel-medialibrary` on the public disk, with queued WebP conversions and responsive srcsets | MASTER_PROMPT names it. Covers WEB-03 responsive images. |
+| 2026-11-21 | EXIF stripped by re-encoding the original on `MediaHasBeenAddedEvent` | Conversions alone would leave GPS data in the publicly served original (SEC-08). |
+| 2026-11-21 | CMS HTML sanitised at render time with Symfony HtmlSanitizer (already a Filament dependency) | Defence against a compromised editor account; no new package. |
+| 2026-11-21 | Sitemap and redirects built in-house, not with `spatie/laravel-sitemap` | A few dozen URLs and one table; a package would add more than it saves. |
+| 2026-11-21 | `/book` saves an enquiry, not a booking, until M4 | The online booking flow needs payment rules (M4). An enquiry never claims inventory, so there's no risk of phantom holds. |
+| 2026-11-21 | Catch-all `/{slug}` for CMS pages excludes `admin`, `staff`, `stay`, `livewire`, `storage`, `up` | Stops CMS slugs shadowing app routes. Page slugs are also validated against reserved words. |
 | 2026-11-21 | Concurrency tests use `DatabaseTruncation` and a second connection | `RefreshDatabase` transactions are invisible to other connections, so a true race can't be shown with them. |

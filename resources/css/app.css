@@ -21,3 +21,38 @@
 
     --color-ink-900: #1c1917;
 }
+
+/* Rich-text content written in the CMS. */
+@layer components {
+    .cms-content {
+        @apply max-w-none text-base leading-relaxed text-ink-900/85;
+    }
+    .cms-content > * + * {
+        @apply mt-4;
+    }
+    .cms-content h2 {
+        @apply mt-10 font-display text-2xl font-semibold text-lodge-900;
+    }
+    .cms-content h3 {
+        @apply mt-8 font-display text-xl font-semibold text-lodge-900;
+    }
+    .cms-content a {
+        @apply font-medium text-lodge-700 underline underline-offset-4 hover:text-lodge-900;
+    }
+    .cms-content ul {
+        @apply list-disc space-y-2 pl-6;
+    }
+    .cms-content ol {
+        @apply list-decimal space-y-2 pl-6;
+    }
+    .cms-content strong {
+        @apply font-semibold text-ink-900;
+    }
+    .cms-content blockquote {
+        @apply border-l-4 border-sand-300 pl-4 italic;
+    }
+}
+
+:focus-visible {
+    outline-color: var(--color-lodge-700);
+}

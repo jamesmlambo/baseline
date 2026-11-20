@@ -29,4 +29,17 @@ Only requirements that have been worked on are listed. Everything else is still 
 | BOOK-03 | Valid transitions + history | Tested | `BookingStateMachine` | `BookingStateMachineTest` |
 | BOOK-04 | Every hold expires; released every minute | Tested | `ReleaseExpiredHolds`, scheduler, DB CHECK | `BookingStateMachineTest` |
 | BOOK-05 | Source + external reference recorded | Implemented | `bookings` columns | — |
-| WEB-06 | Prices from the rate engine | Tested | `RateCalculator` | `InventoryTest` |
+| WEB-06 | Prices from the rate engine | Tested | `RateCalculator`, public room pages | `InventoryTest`, `PublicSiteTest` |
+| §5.1 | All 20 public pages | Tested | `routes/web.php`, `resources/views/site` | `PublicSiteTest` |
+| WEB-01 | Mobile-first, configurable branding | Implemented (brand tokens in `app.css`; admin-editable branding pending client assets) | Layout | Manual 375 px check |
+| WEB-02 | WCAG 2.1 AA, Lighthouse ≥ 90 | Partly (semantic markup, labels, focus, skip link). Full audit in M13. | Layout, forms | — |
+| WEB-03 | Responsive images | Implemented | `HasWebImages` conversions + srcset | — |
+| WEB-04 | SEO, OG, sitemap, structured data | Tested | Layout, `SitemapController` | `PublicSiteTest` |
+| WEB-05 | Old-URL redirects | Tested | `RedirectController`, Redirects screen | `RedirectAndMediaTest` |
+| WEB-07 | Grading only with evidence | Tested | `SiteContent::gradingStars` | `PublicSiteTest` |
+| WEB-08 | No invented facts, DEMO badges | Tested | Seeders, badges | `PublicSiteTest` |
+| WEB-09 | Clear result screens | Partly (request sent / validation / nothing free). Payment results in M4. | Views | `EnquiryTest` |
+| WEB-10 | Enquiry fallback form + WhatsApp | Tested | `ContactController`, `BookingEnquiryController` | `EnquiryTest` |
+| CMS-01–05 | Pages, news workflow, preview, homepage posts | Tested (preview = "View" link on published pages; draft preview in M13) | Website screens, `PostWorkflow` | `WebsiteAdminTest`, `PublicSiteTest` |
+| OBK-03 | Terms required, marketing consent separate | Tested | `/book`, contact form | `EnquiryTest` |
+| SEC-08 | Upload checks, EXIF stripped | Tested (MIME + size + EXIF; antivirus interface pending) | `StripImageMetadata` | `RedirectAndMediaTest` |

@@ -4,10 +4,17 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\Amenity;
+use App\Models\Faq;
 use App\Models\User;
+use App\Policies\WebsiteContentPolicy;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Events\RoleAttachedEvent;
 use Spatie\Permission\Events\RoleDetachedEvent;
@@ -29,6 +36,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Model::preventLazyLoading(! $this->app->isProduction());
+
+        RateLimiter::for('enquiries', fn (Request $request): Limit => Limit::perMinute(5)->by((string) $request->ip()));
+
+        Gate::policy(Faq::class, WebsiteContentPolicy::class);
+        Gate::policy(Amenity::class, WebsiteContentPolicy::class);
 
         Event::listen(RoleAttachedEvent::class, function (RoleAttachedEvent $event): void {
             $this->logRoleChange($event->model, $event->rolesOrIds, 'role_attached');

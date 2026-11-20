@@ -43,7 +43,7 @@ php artisan migrate --seed
 In VS Code, run the **Dev: all** task (Terminal › Run Task), or start each part yourself:
 
 ```powershell
-php artisan serve
+php artisan serve --port=8001
 npm run dev
 php artisan queue:listen --tries=3
 php artisan schedule:work
@@ -51,9 +51,9 @@ php artisan schedule:work
 
 | Area | URL | Who |
 |---|---|---|
-| Public website | http://127.0.0.1:8000 | Everyone |
-| Administration | http://127.0.0.1:8000/admin | Administrator, Owner, Manager, Receptionist, Content editor. Two-factor login is required. |
-| Staff portal | http://127.0.0.1:8000/staff | All staff roles |
+| Public website | http://127.0.0.1:8001 | Everyone |
+| Administration | http://127.0.0.1:8001/admin | Administrator, Owner, Manager, Receptionist, Content editor. Two-factor login is required. |
+| Staff portal | http://127.0.0.1:8001/staff | All staff roles |
 | Guest portal | `/stay` | Coming in Milestone 7 |
 
 On first sign-in to `/admin` you will be asked to set up an authenticator app (Google Authenticator, Microsoft Authenticator, 1Password, etc.) and to save the recovery codes.
