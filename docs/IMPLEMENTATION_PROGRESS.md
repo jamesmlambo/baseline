@@ -14,7 +14,8 @@ New session? Read `docs/MASTER_PROMPT.md`, `docs/FINAL_SPECIFICATION.md` and thi
 - **Milestone 8 — Housekeeping & maintenance:** done (tasks, checkout turnover, Monday deep clean, inspections with rework, room readiness, maintenance and equipment, stock ledger, lost property).
 - **Milestone 9 — Employees & attendance:** done (profiles with approval, departments, weekly rosters, leave, holidays, cover, raw punches + derived attendance, CSV import, manual entry, corrections, monthly export; Hikvision behind an interface).
 - **Milestone 10 — Leisure & food:** done (service catalogue with hours, slots and capacity, spa therapist + room checks, reception and portal bookings, charge-to-room or walk-in payment with invoice/receipt, meal ordering hours, kitchen tickets, feature flags).
-- **Next:** **Milestone 11 — Reporting** (owner dashboard, analytics, 17:00 report, push, escalations; FINAL_SPECIFICATION §19).
+- **Milestone 11 — Reporting:** done (owner dashboard with documented metrics and date bases, 17:00 daily report with stored snapshot, email, push (log driver), delivery log and retries, report archive, day close, campaign tracking).
+- **Next:** **Milestone 12 — External channels** (channel-manager abstraction, readiness, monitoring, reconciliation; FINAL_SPECIFICATION §19 CHN-01..04, after PEND-08).
 
 ## Environment
 
@@ -341,3 +342,32 @@ Online self-booking and payment for day visitors on the public website (they boo
 
 ### Tests
 392 passing (28 new in `tests/Feature/Leisure`). Portal Book page checked in the browser at phone width.
+
+## Milestone 11 — Reporting (21 Nov 2026)
+
+### Owner dashboard (REP-01, REP-02, REP-06)
+**Reports › Owner dashboard** (owner and managers): today, yesterday, last 7 days, this month, last month or a custom range (up to a year).
+- **Rooms (stay date):** occupancy, room-nights sold/available, room revenue, ADR, RevPAR, nights blocked; stays split into confirmed / pending / cancelled / no-show / expired.
+- **Money (transaction date):** payments received (and by method), refunds paid, invoiced, credit notes, leisure done, EFTs awaiting verification, money owed now.
+- **Operations:** arrivals/departures, in house, rooms by cleaning status, housekeeping, inspection score, maintenance and faults, complaints, guest requests waiting, attendance, exceptions (payments needing attention, failed messages/jobs/report deliveries).
+- **Bookings and marketing (created date):** booking sources, online conversion, WhatsApp price-list conversion, enquiries, campaigns.
+- Every section says its date basis; formulas are in `docs/REPORT_METRICS.md`. No industry benchmarks.
+
+### Daily report (REP-03, REP-05)
+- `reports:daily` runs every minute; from `reports.daily_time` (17:00 SAST) it stores that day's snapshot **once** (plus month to date and tomorrow's arrivals) and sends it to every active owner.
+- **Email:** headline totals only, no guest details, and a link to the report that needs a sign-in.
+- **Web push:** behind a `PushNotifier` interface with a **log driver**; deliveries show as *skipped* (never "sent") until a push provider and keys are approved.
+- Every send is a delivery row (status, tries, last error). Failures are retried after 5, 10, 20, 40 minutes (5 tries). A missed 17:00 run catches up the next minute.
+- Guest escalations stay on their own every-minute schedule (REP-05).
+
+### Archive and day close (REP-04)
+**Reports › Daily reports:** every stored day, with deliveries and a manual retry. **Close the day** (owner/manager, from 17:00 that day, once, audited) records the reconciled money totals without changing the 17:00 snapshot.
+
+### Campaign tracking (REP-06)
+The website remembers, for the visit, the first `utm_source` / `utm_medium` / `utm_campaign` (or the referring site's host name) and stores it on website bookings and enquiries. No full URLs, IPs or extra cookies.
+
+### Not yet
+Real web push (needs approval: package + VAPID keys), push for urgent staff alerts, charts (figures only for now), PDF export of reports.
+
+### Tests
+410 passing (18 new in `tests/Feature/Reports`). Dashboard and archive covered by Livewire tests; not opened in a browser (needs the owner's 2FA sign-in).

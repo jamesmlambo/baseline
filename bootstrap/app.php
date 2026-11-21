@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CaptureCampaign;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Payment providers call these without a session; they are verified by signature instead.
         $middleware->preventRequestForgery(except: ['webhooks/*']);
+        $middleware->web(append: [CaptureCampaign::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

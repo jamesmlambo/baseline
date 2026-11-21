@@ -74,3 +74,8 @@ Record every compatibility or design decision here (MASTER_PROMPT §0).
 | 2026-11-21 | Walk-in sales use invoices/receipts with no booking (`invoiceForWalkIn`, `recordWalkIn`) | Day visitors get proper sequential financial documents without a fake room booking. |
 | 2026-11-21 | Room charges for services are added on completion, not at booking | Same rule as room service: cancellations and no-shows never need a credit note. |
 | 2026-11-21 | Kitchen tickets copy items and allergens at order time | The kitchen sees what was ordered even if the menu changes later. |
+| 2026-11-21 | Metrics computed live by `ReportMetrics`; the daily report stores a JSON snapshot | The dashboard is always current, while the 17:00 report stays exactly as sent (REP-03/04). |
+| 2026-11-21 | Room revenue spreads a room's accommodation total evenly over its nights | Rates aren't stored per night; even spreading gives a stable, explainable ADR (docs/REPORT_METRICS.md). |
+| 2026-11-21 | `reports:daily` runs every minute and is idempotent instead of one 17:00 cron entry | A missed run (deploy, outage) catches up automatically and the report time stays a setting. |
+| 2026-11-21 | Web push behind `PushNotifier` with a log driver; log deliveries recorded as "skipped" | No live integration or new package without approval, and the delivery log never claims a push was sent. |
+| 2026-11-21 | Campaign attribution = first-touch utm values or referrer host, kept in the session | REP-06 tracking without third-party scripts, cookies or personal data. |

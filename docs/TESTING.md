@@ -33,3 +33,4 @@ npm run build
 | 2026-11-21 | M8 | 322 | All passed. New admin and staff screens covered by Livewire tests only (sign-in needed for a manual check). |
 | 2026-11-21 | M9 | 364 | All passed. New HR and staff screens covered by Livewire tests only. |
 | 2026-11-21 | M10 | 392 | All passed. Portal Book page checked in the browser at 375 px; admin and kitchen screens by Livewire tests. |
+| 2026-11-21 | M11 | 410 | All passed. Owner dashboard and report archive by Livewire tests (owner sign-in needs 2FA). |

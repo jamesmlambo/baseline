@@ -7,6 +7,7 @@ use App\Actions\Housekeeping\GenerateDeepCleans;
 use App\Actions\Housekeeping\RunMaintenanceSchedules;
 use App\Actions\Messaging\RunMessageAutomations;
 use App\Actions\Portal\EscalateGuestRequests;
+use App\Services\Reports\DailyReports;
 use App\Services\Staff\Attendance\AttendanceCalculator;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Artisan;
@@ -60,6 +61,18 @@ Artisan::command('attendance:derive {--date= : Work date (YYYY-MM-DD); default y
         $this->line($date->toDateString().': '.$calculator->deriveDate($date).' day(s) updated');
     }
 })->purpose('Work out attendance from rosters and punches (ATT-03)');
+
+Artisan::command('reports:daily', function (DailyReports $reports): void {
+    $report = $reports->run();
+    $retried = $reports->retryFailed();
+    $this->info(($report ? "Daily report for {$report->report_date->toDateString()} sent." : 'No report due.')." Retried {$retried} failed delivery(ies).");
+})->purpose('Generate and deliver the daily owner report after the configured time, and retry failed deliveries (REP-03)');
+
+// Checked every minute so a missed 17:00 run catches up; it generates and sends once per day.
+Schedule::command('reports:daily')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->onOneServer();
 
 Schedule::command('attendance:derive')
     ->hourly()

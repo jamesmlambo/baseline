@@ -30,6 +30,7 @@ class Enquiry extends Model
         return [
             'type' => EnquiryType::class,
             'status' => EnquiryStatus::class,
+            'attribution' => 'array',
             'arrival_date' => 'immutable_date',
             'departure_date' => 'immutable_date',
             'quoted_total_cents' => MoneyCast::class,

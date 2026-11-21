@@ -11,6 +11,7 @@ use App\Enums\BookingStatus;
 use App\Enums\PaymentMethod;
 use App\Exceptions\RoomUnavailableException;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\CaptureCampaign;
 use App\Http\Requests\Site\ReservationFormRequest;
 use App\Mail\BookingReceived;
 use App\Models\AccommodationType;
@@ -121,6 +122,11 @@ class BookingController extends Controller
         }
 
         $priceList?->forceFill(['booking_id' => $booking->id])->save();
+
+        // REP-06: first-touch campaign source for this visit, if any.
+        if (is_array($attribution = $request->session()->get(CaptureCampaign::SESSION_KEY))) {
+            $booking->forceFill(['attribution' => $attribution])->save();
+        }
 
         if ($booking->lead_guest_email) {
             try {

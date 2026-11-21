@@ -31,6 +31,8 @@ use App\Policies\LeisureCatalogPolicy;
 use App\Policies\OperationsRecordPolicy;
 use App\Policies\PeopleRecordPolicy;
 use App\Policies\WebsiteContentPolicy;
+use App\Services\Notifications\LogPushNotifier;
+use App\Services\Notifications\PushNotifier;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -50,7 +52,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Web push stays on the log driver until a provider and VAPID keys are approved (REP-03).
+        $this->app->bind(PushNotifier::class, LogPushNotifier::class);
     }
 
     /**

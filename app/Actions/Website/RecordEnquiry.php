@@ -6,6 +6,7 @@ namespace App\Actions\Website;
 
 use App\Enums\EnquiryStatus;
 use App\Enums\EnquiryType;
+use App\Http\Middleware\CaptureCampaign;
 use App\Models\Enquiry;
 use App\Models\Setting;
 use App\Notifications\NewWebsiteEnquiry;
@@ -29,6 +30,13 @@ class RecordEnquiry
             'marketing_consent' => (bool) ($attributes['marketing_consent'] ?? false),
             'ip_hash' => $ip !== null ? hash_hmac('sha256', $ip, (string) config('app.key')) : null,
         ]);
+
+        // REP-06: first-touch campaign source for this visit, if any.
+        $attribution = request()->hasSession() ? request()->session()->get(CaptureCampaign::SESSION_KEY) : null;
+
+        if (is_array($attribution)) {
+            $enquiry->forceFill(['attribution' => $attribution])->save();
+        }
 
         $inbox = Setting::get('website.enquiry_email');
 

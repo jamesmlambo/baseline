@@ -10,7 +10,7 @@ No outside service is live. Every integration sits behind an interface with a fa
 | Email | Laravel mail | `log` mailer | Active locally (log only) | MSG-01 |
 | Channel manager (Booking.com, LekkeSlaap) | `ChannelManager` | null | Not built (M12). Architecture pending (PEND-08). | CHN-01–04 |
 | Hikvision DS-K1T342MFWX-E1 | `AttendanceSource` | **CSV import + authorised manual entry** (M9) | Adapter stub refuses to run until the on-device proof of concept passes (`docs/HIKVISION_POC.md`). |  ATT-01, ATT-06 |
-| Web push | webpush channel | — | Not built (M11) | REP-03 |
+| Web push | `PushNotifier` | **log** (`LogPushNotifier`) | Interface and delivery log built (M11). Deliveries show as "skipped". A real channel needs a package and VAPID keys (approval). | REP-03 |
 | Antivirus scanning | `FileScanner` | none | Not built. Never shown as active until a real scanner is connected. | SEC-08 |
 
 ## Rules

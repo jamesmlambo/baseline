@@ -43,6 +43,7 @@ class Booking extends Model
         return [
             'status' => BookingStatus::class,
             'payment_status' => PaymentStatus::class,
+            'attribution' => 'array',
             'source' => BookingSource::class,
             'arrival_date' => 'immutable_date',
             'departure_date' => 'immutable_date',

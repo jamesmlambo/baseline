@@ -112,3 +112,9 @@ Only requirements that have been worked on are listed. Everything else is still 
 | LSR-04 | Menus, allergens, order cut-offs, kitchen tickets | Tested | `MenuCategoryRule`, `KitchenTickets`, Kitchen screen | `LeisureTest`, `LeisureScreensTest` |
 | LSR-05 | In-house charge to folio | Tested | `ServiceBookings::complete`, portal Book | `LeisureTest`, `LeisureScreensTest` |
 | LSR-06 | Optional extras behind flags | Tested (indemnity only; others not built) | `Features` | `LeisureTest` |
+| REP-01 | Owner dashboard metrics | Tested | `ReportMetrics`, Owner dashboard | `ReportsTest` |
+| REP-02 | Documented formulas, date basis, statuses kept apart | Tested | `docs/REPORT_METRICS.md`, `ReportMetrics` | `ReportsTest` |
+| REP-03 | 17:00 snapshot, email, push, delivery log, retries | Tested (push = log driver) | `DailyReports`, `reports:daily`, `DailyReportMail` | `ReportsTest` |
+| REP-04 | Report archive, optional day close | Tested | Daily reports, `DailyReports::freeze` | `ReportsTest` |
+| REP-05 | Escalation independent of the daily report | Tested | `portal:escalate` schedule | `ReportsTest`, `PortalStayTest` |
+| REP-06 | Conversion, sources, campaigns; no benchmarks | Tested | `CaptureCampaign`, `ReportMetrics::marketing` | `ReportsTest`, `CampaignTrackingTest` |

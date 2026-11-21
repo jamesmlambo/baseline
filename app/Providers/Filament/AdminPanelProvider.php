@@ -51,6 +51,7 @@ class AdminPanelProvider extends PanelProvider
                 'Website',
                 'Operations',
                 'People',
+                'Reports',
                 'Settings',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
