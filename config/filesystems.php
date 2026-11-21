@@ -38,6 +38,15 @@ return [
             'report' => false,
         ],
 
+        // PRIV-05: backups on this server. Production must also send them off-site (BACKUP_DISKS=backups,s3).
+        'backups' => [
+            'driver' => 'local',
+            'root' => storage_path('app/backups'),
+            'serve' => false,
+            'throw' => true,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

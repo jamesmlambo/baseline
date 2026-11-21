@@ -33,6 +33,8 @@ use App\Policies\PeopleRecordPolicy;
 use App\Policies\WebsiteContentPolicy;
 use App\Services\Notifications\LogPushNotifier;
 use App\Services\Notifications\PushNotifier;
+use App\Services\Security\FileScanner;
+use App\Services\Security\NullFileScanner;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -54,6 +56,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // Web push stays on the log driver until a provider and VAPID keys are approved (REP-03).
         $this->app->bind(PushNotifier::class, LogPushNotifier::class);
+
+        // SEC-08: no virus scanner connected yet; uploads are recorded as "not scanned".
+        $this->app->bind(FileScanner::class, NullFileScanner::class);
     }
 
     /**

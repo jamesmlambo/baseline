@@ -1,4 +1,4 @@
-@props(['type', 'price' => null, 'priceLabel' => 'from', 'priceSuffix' => 'per night', 'href' => null])
+@props(['type', 'price' => null, 'priceLabel' => 'from', 'priceSuffix' => 'per night', 'href' => null, 'headingLevel' => 3])
 @php
     $media = $type->getFirstMedia('gallery');
 @endphp
@@ -17,9 +17,10 @@
         @endif
     </div>
     <div class="flex flex-1 flex-col gap-3 p-5">
-        <h3 class="font-display text-xl font-semibold text-lodge-900">
+        @php($headingTag = 'h'.max(2, min(6, (int) $headingLevel)))
+        <{{ $headingTag }} class="font-display text-xl font-semibold text-lodge-900">
             <a href="{{ $href ?? route('rooms.show', $type->slug) }}" class="after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-lodge-700">{{ $type->name }}</a>
-        </h3>
+        </{{ $headingTag }}>
         @if ($type->summary)
             <p class="text-sm text-ink-900/70">{{ $type->summary }}</p>
         @endif

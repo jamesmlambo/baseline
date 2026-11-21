@@ -8,6 +8,8 @@ use App\Actions\Housekeeping\RunMaintenanceSchedules;
 use App\Actions\Messaging\RunMessageAutomations;
 use App\Actions\Portal\EscalateGuestRequests;
 use App\Services\Channels\ChannelSync;
+use App\Services\Operations\ProductionReadiness;
+use App\Services\Privacy\RetentionReview;
 use App\Services\Reports\DailyReports;
 use App\Services\Staff\Attendance\AttendanceCalculator;
 use Carbon\CarbonImmutable;
@@ -62,6 +64,58 @@ Artisan::command('attendance:derive {--date= : Work date (YYYY-MM-DD); default y
         $this->line($date->toDateString().': '.$calculator->deriveDate($date).' day(s) updated');
     }
 })->purpose('Work out attendance from rosters and punches (ATT-03)');
+
+// PRIV-05 backups: database every 4 hours (RPO 4 h), database + uploads nightly, then clean-up and a health check.
+Schedule::command('backup:run --only-db')->cron('0 */4 * * *')->timezone('Africa/Johannesburg')->withoutOverlapping()->onOneServer();
+Schedule::command('backup:run')->dailyAt('01:30')->timezone('Africa/Johannesburg')->withoutOverlapping()->onOneServer();
+Schedule::command('backup:clean')->dailyAt('03:00')->timezone('Africa/Johannesburg')->onOneServer();
+Schedule::command('backup:monitor')->dailyAt('07:00')->timezone('Africa/Johannesburg')->onOneServer();
+
+Artisan::command('app:production-check', function (ProductionReadiness $readiness): int {
+    $results = $readiness->check();
+
+    $this->table(['', 'Check', 'Result'], array_map(fn (array $row): array => [
+        match ($row['status']) {
+            'ok' => 'OK',
+            'warn' => 'CHECK',
+            default => 'FAIL',
+        },
+        $row['area'],
+        $row['message'],
+    ], $results));
+
+    $failures = count(array_filter($results, fn (array $row): bool => $row['status'] === 'fail'));
+    $failures > 0 ? $this->error("{$failures} item(s) block go-live. See docs/PRODUCTION_CHECKLIST.md.") : $this->info('No blocking items.');
+
+    return $failures > 0 ? 1 : 0;
+})->purpose('List what still blocks going live: demo data and accounts, fake drivers, pending decisions, backups');
+
+Artisan::command('privacy:retention {--apply : Apply the rules (only works when retention.enforcement_enabled is yes)}', function (RetentionReview $retention): void {
+    $this->table(['Data', 'Keep (months)', 'Would be affected', 'Action'], collect($retention->review())->map(fn (array $rule, string $name): array => [
+        $name, $rule['months'] ?? 'keep (not decided)', $rule['affected'], $rule['action'],
+    ])->values()->all());
+
+    if (! $this->option('apply')) {
+        $this->info('Review only. Nothing was changed.');
+
+        return;
+    }
+
+    if (! RetentionReview::enforcementEnabled()) {
+        $this->warn('Retention enforcement is switched off (PEND-11). Nothing was changed.');
+
+        return;
+    }
+
+    $this->info('Applied: '.json_encode($retention->enforce()));
+})->purpose('Show (and, once approved, apply) data retention rules (PRIV-03)');
+
+// Runs daily but changes nothing until the client approves the periods (PEND-11).
+Schedule::call(fn () => app(RetentionReview::class)->enforce())
+    ->name('privacy:retention-enforce')
+    ->dailyAt('02:30')
+    ->timezone('Africa/Johannesburg')
+    ->onOneServer();
 
 Artisan::command('channels:sync', function (ChannelSync $sync): void {
     $this->info("Checked {$sync->syncAll()} enabled channel(s). See Channels for each run's result.");

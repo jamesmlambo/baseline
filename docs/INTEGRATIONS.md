@@ -12,7 +12,8 @@ No outside service is live. Every integration sits behind an interface with a fa
 | iCal (per room) | `IcalCalendar` | export link + manual import; automatic fetch **off** (`channels.ical_fetch_enabled`) | Limited fallback, dates only (M12). | CHN-02 |
 | Hikvision DS-K1T342MFWX-E1 | `AttendanceSource` | **CSV import + authorised manual entry** (M9) | Adapter stub refuses to run until the on-device proof of concept passes (`docs/HIKVISION_POC.md`). |  ATT-01, ATT-06 |
 | Web push | `PushNotifier` | **log** (`LogPushNotifier`) | Interface and delivery log built (M11). Deliveries show as "skipped". A real channel needs a package and VAPID keys (approval). | REP-03 |
-| Antivirus scanning | `FileScanner` | none | Not built. Never shown as active until a real scanner is connected. | SEC-08 |
+| Antivirus scanning | `FileScanner` | **null** (`NullFileScanner`) | Interface and upload hook built (M13). Files are marked "not scanned"; never shown as clean until a real scanner (e.g. ClamAV) is connected. | SEC-08 |
+| Backups | `spatie/laravel-backup` | local `backups` disk | Built and restore-tested (M13). Production must add an off-site disk. | PRIV-05 |
 
 ## Rules
 - Never send real SMS, WhatsApp or payments from local or test environments.

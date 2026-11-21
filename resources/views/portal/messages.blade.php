@@ -12,7 +12,7 @@
                 ])>
                     <p class="sr-only">{{ $message->direction === 'in' ? 'You' : 'Reception' }}:</p>
                     <p>{!! nl2br(e($message->body)) !!}</p>
-                    <p @class(['mt-1 text-[0.7rem]', 'text-sand-200' => $message->direction === 'in', 'text-ink-900/50' => $message->direction === 'out'])>
+                    <p @class(['mt-1 text-[0.7rem]', 'text-sand-200' => $message->direction === 'in', 'text-ink-900/70' => $message->direction === 'out'])>
                         {{ $message->created_at->setTimezone('Africa/Johannesburg')->format('D H:i') }}
                     </p>
                 </div>

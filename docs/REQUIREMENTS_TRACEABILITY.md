@@ -122,3 +122,9 @@ Only requirements that have been worked on are listed. Everything else is still 
 | CHN-02 | Limited iCal import/export, labelled | Tested (automatic fetch off) | `IcalCalendar`, `ChannelSync::importIcal`, `/ical/{token}.ics` | `ChannelsTest` |
 | CHN-03 | OTA room auto-assigned or exception queue + alert | Tested | `ImportChannelReservation`, Channel problems | `ChannelsTest` |
 | CHN-04 | Stale warnings, scheduled sync, no false sync claims | Tested | `ChannelSync`, `Channel::isStale`, `channels:sync` | `ChannelsTest` |
+| SEC-02 | Server-side checks; denied attempts logged | Tested | Policies, `AccessDeniedLogger` | `PrivacyAndSecurityTest` |
+| SEC-08 | Upload scanning interface, never shown as active | Tested | `FileScanner`, `NullFileScanner`, `ScanUploadedFile` | `PrivacyAndSecurityTest` |
+| PRIV-01 | Access to sensitive records logged | Tested | Data export / refused-access logging | `PrivacyAndSecurityTest` |
+| PRIV-03 | Retention per data type, legal hold, anonymisation, nothing deleted until approved | Tested | `GuestPrivacy`, `RetentionReview`, `privacy:retention` | `PrivacyAndSecurityTest` |
+| PRIV-05 | Encrypted backups, tested restore | Tested (restore run 21 Nov 2026) | `config/backup.php`, `backup:restore-test` | docs/BACKUP_RESTORE.md |
+| ACC-10 | No demo/fake drivers in production; PENDING flagged | Tested | `ProductionReadiness`, `app:production-check` | `PrivacyAndSecurityTest` |

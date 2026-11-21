@@ -84,3 +84,8 @@ Record every compatibility or design decision here (MASTER_PROMPT §0).
 | 2026-11-21 | Date/room changes from a channel are not applied automatically | Moving a stay can collide with other bookings; a person decides, with an urgent alert. |
 | 2026-11-21 | iCal imports become room blocks with reason "channel"; clashes go to the exception queue | Reuses inventory protection; reports can keep them apart from out-of-service rooms. |
 | 2026-11-21 | iCal fetching off by default; manual upload/paste instead | Fetching is an outside connection, so it waits for approval (PEND-07). |
+| 2026-11-21 | Anonymisation instead of deletion; invoices keep their printed name | POPIA requests without breaking immutable financial records or foreign keys; legal holds block it. |
+| 2026-11-21 | Retention rules are settings with a separate on/off switch, default off | PRIV-03 / PEND-11: nothing irreversible happens until the periods are approved; the effect can be previewed. |
+| 2026-11-21 | Refused access logged from the exception handler (render callback returning null) | One place covers policies, Filament and abort(403) without changing the normal 403 page. |
+| 2026-11-21 | `spatie/laravel-backup` with a separate `backups` disk; restore proven by `backup:restore-test` into a `_restore_test` scratch database | The approved package; the command can only ever create/drop a database with that suffix. |
+| 2026-11-21 | No Content-Security-Policy yet | Filament and Livewire rely on inline scripts; a strict CSP needs nonce support and testing at go-live. |

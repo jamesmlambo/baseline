@@ -18,7 +18,7 @@ Seeded from `FINAL_SPECIFICATION.md` §3.2. Items with a setting show up in **Ad
 | PEND-08 | Custom Laravel vs hybrid PMS | — | Custom Laravel behind interfaces. |
 | PEND-09 | Budgets, named approver | — | Not a build item. |
 | PEND-10 | Website languages | — | English only. |
-| PEND-11 | Retention periods | — | Nothing deleted automatically. |
+| PEND-11 | Retention periods | `retention.guest_profile_months`, `retention.message_months`, `retention.portal_code_months` (empty), `retention.enforcement_enabled` (no) | Nothing changed or deleted. `php artisan privacy:retention` previews the effect. |
 | PEND-12 | Escalation timers | `escalation.backup_minutes` (10), `escalation.owner_minutes` (30) | Recommended defaults. |
 | PEND-15 | Inspection scoring scale and pass mark | `inspections.scale_max` (5), `inspections.pass_mark` (4) | Development defaults: every checklist item scored 0–5; below 4 fails and creates rework. |
 | PEND-07b | Fetch channel calendars automatically | `channels.ical_fetch_enabled` (no) | Calendars are uploaded or pasted by staff until the server may download them. |

@@ -7,7 +7,7 @@
         @else
             <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($posts as $post)
-                    <x-site.post-card :post="$post" />
+                    <x-site.post-card :post="$post" :heading-level="2" />
                 @endforeach
             </div>
             <div class="mt-10">{{ $posts->links() }}</div>

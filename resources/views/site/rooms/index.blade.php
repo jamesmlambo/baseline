@@ -7,7 +7,7 @@
         @else
             <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($types as $type)
-                    <x-site.room-card :type="$type" :price="$fromPrices[$type->id] ?? null" />
+                    <x-site.room-card :type="$type" :price="$fromPrices[$type->id] ?? null" :heading-level="2" />
                 @endforeach
             </div>
         @endif

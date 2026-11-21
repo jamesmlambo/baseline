@@ -31,6 +31,8 @@ class Guest extends Model
         return [
             'email' => 'encrypted',
             'phone' => 'encrypted',
+            'legal_hold_at' => 'datetime',
+            'anonymised_at' => 'datetime',
             'marketing_consent' => 'boolean',
             'marketing_consent_at' => 'immutable_datetime',
             'channel_opt_outs' => 'array',

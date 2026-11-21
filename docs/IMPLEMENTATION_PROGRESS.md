@@ -16,7 +16,8 @@ New session? Read `docs/MASTER_PROMPT.md`, `docs/FINAL_SPECIFICATION.md` and thi
 - **Milestone 10 — Leisure & food:** done (service catalogue with hours, slots and capacity, spa therapist + room checks, reception and portal bookings, charge-to-room or walk-in payment with invoice/receipt, meal ordering hours, kitchen tickets, feature flags).
 - **Milestone 11 — Reporting:** done (owner dashboard with documented metrics and date bases, 17:00 daily report with stored snapshot, email, push (log driver), delivery log and retries, report archive, day close, campaign tracking).
 - **Milestone 12 — External channels:** done as far as possible without a provider (ChannelManager interface + null driver, idempotent OTA import with room assignment or exception queue, sync log and stale warnings, scheduled sync, iCal export/import fallback).
-- **Next:** **Milestone 13 — Final quality** (compliance config, security, backup restore, performance, accessibility, full tests, production checklist; FINAL_SPECIFICATION §22).
+- **Milestone 13 — Final quality:** done in development (privacy tools and retention framework, access-denied logging, security headers, upload scanning interface, foreign-key indexes, accessibility fixes, encrypted backups with a passed restore test, production readiness check and checklist). Go-live still needs the client decisions and providers listed in docs/PRODUCTION_CHECKLIST.md.
+- **Next:** client decisions (docs/PENDING_DECISIONS.md), provider choices, real content, then the go-live steps in docs/PRODUCTION_CHECKLIST.md.
 
 ## Environment
 
@@ -403,3 +404,30 @@ A real channel-manager/OTA driver (PEND-07/08), pushing availability and rates (
 
 ### Tests
 425 passing (15 new in `tests/Feature/Channels`, including a fake connected driver).
+
+## Milestone 13 — Final quality (21 Nov 2026)
+
+### Privacy (PRIV-01, PRIV-03, COMPLIANCE_TODO)
+- Guest profile › **Privacy**: *Export their data* (POPIA access request, JSON download, logged), *Place / release legal hold*, *Anonymise* (owner only; refused on legal hold or with an unfinished booking). Anonymising replaces names and contact details in the profile, bookings, guest register (incl. ID numbers), messages, portal requests/messages, reviews, extra phones, leisure bookings and the matching audit entries. Issued invoices/receipts keep the printed name (tax records — VERIFY).
+- **Retention framework:** `retention.guest_profile_months`, `retention.message_months`, `retention.portal_code_months` (all empty = keep) and `retention.enforcement_enabled` (no) — PEND-11. `php artisan privacy:retention` shows what would change; the nightly job changes nothing until the client approves and switches it on.
+
+### Security
+- Every refused access by a signed-in user is logged (who, method, path, route, hashed IP) — the spec's acceptance test: a housekeeping user opening the payments screen gets 403 and appears in the audit log.
+- Security headers on every response (nosniff, frame options, referrer and permissions policy; HSTS over HTTPS). Content-Security-Policy deliberately left for go-live testing (Filament/Livewire need nonces).
+- **SEC-08:** every upload passes a `FileScanner`; only a null scanner exists, so files are recorded as "not scanned" (never "clean"); an infected result deletes the file and logs it.
+- `declare(strict_types=1)` added to the 30 generated files that lacked it.
+
+### Backups (PRIV-05, acceptance 9)
+`spatie/laravel-backup` v10 (approved): database every 4 h, database + uploads nightly, AES-256 encrypted zip, verified after creation, clean-up and daily health check. `php artisan backup:restore-test` restores the newest backup into a scratch `*_restore_test` database, compares all 90 tables and drops it — **passed** on 21 Nov 2026. See docs/BACKUP_RESTORE.md.
+
+### Performance
+Indexes added for the foreign keys used in joins and lookups (room-night ledger, booking rooms, payments, invoices, tasks, messages…). Public pages answer in 130–370 ms locally with debug on and no caches. Lazy-loading prevention stays on in development and tests.
+
+### Accessibility
+Automated browser check of the public site and guest portal: language, one h1, heading order, image alt text, form labels, button/link names, duplicate ids, and colour contrast (computed WCAG ratios). Fixed: heading order on the room and news lists, and faint grey text (news dates, portal footer and timestamps) raised to pass 4.5:1.
+
+### Go-live readiness (acceptance 10)
+`php artisan app:production-check` lists everything that blocks go-live (debug, HTTPS, secure cookies, DEMO records per table, demo accounts, fake/log drivers, backups off-site) and what needs a decision (pending settings, optional providers). docs/PRODUCTION_CHECKLIST.md is the full go-live list. Acceptance criteria are mapped to tests in docs/TESTING.md.
+
+### Tests
+433 passing (8 new in `tests/Feature/Quality`). Backup restore test passed; accessibility checked in the browser.

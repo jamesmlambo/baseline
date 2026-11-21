@@ -67,7 +67,7 @@
         {{ $slot }}
     </main>
 
-    <footer class="mx-auto max-w-2xl px-4 pb-8 text-center text-xs text-ink-900/50">
+    <footer class="mx-auto max-w-2xl px-4 pb-8 text-center text-xs text-ink-900/70">
         We will never ask for your card details by WhatsApp, SMS or chat.
     </footer>
 </body>

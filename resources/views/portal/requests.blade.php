@@ -38,7 +38,7 @@
                     <p class="mt-1 text-sm text-ink-900/75">{{ collect($guestRequest->items)->map(fn ($item) => $item['quantity'].' × '.$item['name'])->implode(', ') }} · {{ $guestRequest->total_cents->format() }}</p>
                 @endif
                 @if ($guestRequest->details)<p class="mt-1 text-sm text-ink-900/75">{{ $guestRequest->details }}</p>@endif
-                <p class="mt-1 text-xs text-ink-900/50">{{ $guestRequest->created_at->setTimezone('Africa/Johannesburg')->format('D H:i') }}</p>
+                <p class="mt-1 text-xs text-ink-900/70">{{ $guestRequest->created_at->setTimezone('Africa/Johannesburg')->format('D H:i') }}</p>
             </li>
         @empty
             <li class="text-sm text-ink-900/60">Nothing yet.</li>
