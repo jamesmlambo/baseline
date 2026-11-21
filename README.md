@@ -78,7 +78,7 @@ Payments, SMS, WhatsApp, web push, virus scanning, channel managers and the Hikv
 ## Tests and code style
 
 ```powershell
-php artisan test --compact
+php artisan test --parallel --processes=4   # about 3 minutes; or: php artisan test --compact
 php vendor/bin/pint
 npm run build
 ```

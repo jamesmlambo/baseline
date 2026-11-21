@@ -52,4 +52,4 @@ npm run build
 | 9 | Backup restore tested and documented | `php artisan backup:restore-test` — passed 21 Nov 2026 (docs/BACKUP_RESTORE.md results log) |
 | 10 | No demo content/accounts/fake drivers in production; PENDING flagged | `php artisan app:production-check`; "ACC-10 blocks go-live while demo data, demo accounts or fake drivers are active" |
 
-Run time: the full suite takes about 5–10 minutes on the development laptop (PostgreSQL, 433 tests). Parallel testing would need the `brianium/paratest` package (not installed).
+Run time: about 5–10 minutes one at a time, or about **3 minutes in parallel**: `php artisan test --parallel --processes=4` (paratest comes with Pest; 4 workers were as fast as 12 on the development laptop). Each worker gets its own copy of the test database (`baselineCL_testing_test_1`, `_2`, …), created and reused automatically. Never point these at the live or another project's database.
