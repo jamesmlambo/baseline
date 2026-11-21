@@ -10,9 +10,12 @@ use App\Enums\GuestRequestType;
 use App\Models\Booking;
 use App\Models\GuestMessage;
 use App\Models\GuestRequest;
+use App\Models\MenuCategoryRule;
 use App\Models\MenuItem;
 use App\Models\User;
+use App\Services\Leisure\KitchenTickets;
 use App\Support\Money;
+use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -25,7 +28,10 @@ class GuestRequests
 {
     public const MAX_ITEMS_PER_ORDER = 20;
 
-    public function __construct(private readonly AddCharge $addCharge) {}
+    public function __construct(
+        private readonly AddCharge $addCharge,
+        private readonly KitchenTickets $kitchen,
+    ) {}
 
     public function submit(Booking $booking, GuestRequestType $type, ?string $details): GuestRequest
     {
@@ -63,6 +69,15 @@ class GuestRequests
             throw new InvalidArgumentException('One of the items is no longer available. Please check the menu again.');
         }
 
+        // LSR-04: order cut-off times per menu category.
+        $closed = MenuCategoryRule::closedAmong($menu->pluck('category')->unique()->values()->all(), CarbonImmutable::now());
+
+        if ($closed !== []) {
+            $rule = array_values($closed)[0];
+
+            throw new InvalidArgumentException("{$rule->category} orders are taken between {$rule->windowLabel()}.".($rule->note ? " {$rule->note}" : ''));
+        }
+
         $items = [];
         $total = Money::zero();
 
@@ -73,7 +88,7 @@ class GuestRequests
             $items[] = ['menu_item_id' => $item->id, 'name' => $item->name, 'quantity' => $quantity, 'unit_cents' => $item->price_cents->cents, 'total_cents' => $lineTotal->cents];
         }
 
-        return GuestRequest::query()->create([
+        $request = GuestRequest::query()->create([
             'booking_id' => $booking->id,
             'room_id' => $booking->activeBookingRooms()->value('room_id'),
             'type' => GuestRequestType::Meal,
@@ -83,6 +98,10 @@ class GuestRequests
             'total_cents' => $total,
             'charge_to_room' => $chargeToRoom,
         ]);
+
+        $this->kitchen->forMealOrder($request);
+
+        return $request;
     }
 
     public function messageReception(Booking $booking, string $body): GuestMessage
@@ -164,6 +183,8 @@ class GuestRequests
                 'invoice_id' => $invoiceId,
             ])->save();
 
+            $this->kitchen->deliveredFor($locked);
+
             return $locked;
         });
     }
@@ -176,6 +197,7 @@ class GuestRequests
 
         if ($request->status === GuestRequestStatus::New) {
             $request->forceFill(['status' => GuestRequestStatus::Cancelled])->save();
+            $this->kitchen->cancelFor($request);
         }
 
         return $request;

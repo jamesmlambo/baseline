@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
                 DemoWebsiteSeeder::class,
                 DemoMenuSeeder::class,
                 DemoStaffSeeder::class,
+                DemoLeisureSeeder::class,
             ]);
         }
     }

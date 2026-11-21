@@ -17,13 +17,17 @@ use App\Models\GuestMessage;
 use App\Models\GuestRequest;
 use App\Models\LeaveRequest;
 use App\Models\MaintenanceSchedule;
+use App\Models\MenuCategoryRule;
 use App\Models\PublicHoliday;
 use App\Models\RosterChange;
 use App\Models\RosterPattern;
+use App\Models\Service;
+use App\Models\ServiceResource;
 use App\Models\Shift;
 use App\Models\TaskChecklistTemplate;
 use App\Models\User;
 use App\Policies\FrontDeskRecordPolicy;
+use App\Policies\LeisureCatalogPolicy;
 use App\Policies\OperationsRecordPolicy;
 use App\Policies\PeopleRecordPolicy;
 use App\Policies\WebsiteContentPolicy;
@@ -74,6 +78,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(MaintenanceSchedule::class, OperationsRecordPolicy::class);
         Gate::policy(TaskChecklistTemplate::class, OperationsRecordPolicy::class);
         Gate::policy(CleaningEstimate::class, OperationsRecordPolicy::class);
+
+        foreach ([Service::class, ServiceResource::class, MenuCategoryRule::class] as $leisureModel) {
+            Gate::policy($leisureModel, LeisureCatalogPolicy::class);
+        }
 
         foreach ([Employee::class, Department::class, Shift::class, RosterPattern::class, RosterChange::class, PublicHoliday::class, LeaveRequest::class, AttendanceDay::class, AttendancePunch::class, AttendanceImport::class] as $peopleModel) {
             Gate::policy($peopleModel, PeopleRecordPolicy::class);

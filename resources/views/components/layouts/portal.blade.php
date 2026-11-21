@@ -4,6 +4,7 @@
         ['route' => 'portal.home', 'label' => 'Home'],
         ['route' => 'portal.requests', 'label' => 'Requests'],
         ['route' => 'portal.menu', 'label' => 'Menu'],
+        ['route' => 'portal.book', 'label' => 'Book'],
         ['route' => 'portal.messages', 'label' => 'Reception'],
         ['route' => 'portal.bill', 'label' => 'Bill'],
     ];

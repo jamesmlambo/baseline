@@ -11,6 +11,11 @@
             @foreach ($menu as $category => $items)
                 <section>
                     <h2 class="font-display text-lg font-semibold text-lodge-900">{{ $category }}</h2>
+                    @if ($rule = $orderingHours->get($category))
+                        <p class="text-sm {{ $rule->isOpenAt(now()->toImmutable()) ? 'text-ink-900/70' : 'font-semibold text-amber-800' }}">
+                            Orders taken {{ $rule->windowLabel() }}{{ $rule->isOpenAt(now()->toImmutable()) ? '' : ' — closed right now' }}.@if ($rule->note) {{ $rule->note }}@endif
+                        </p>
+                    @endif
                     <ul class="mt-2 divide-y divide-sand-200 rounded-2xl bg-white shadow-sm ring-1 ring-sand-200">
                         @foreach ($items as $item)
                             <li class="flex items-start justify-between gap-4 p-4">

@@ -69,3 +69,8 @@ Record every compatibility or design decision here (MASTER_PROMPT §0).
 | 2026-11-21 | Off-duty suppression lives in `StaffAlert::via()` | EMP-04 applies to every staff notice in one place; urgent notices bypass it. |
 | 2026-11-21 | HR access = Owner and Manager only, not Administrator | The administrator role is technical (users, settings); employee and attendance records are personal data (PRIV-01). |
 | 2026-11-21 | Hikvision adapter is a stub behind `AttendanceSource`; CSV import is the working path | No live integration until the device test passes (ATT-06); CSV works with the device's own export today. |
+| 2026-11-21 | Spa therapists/rooms held in `service_booking_resources` with a GiST exclusion constraint | LSR-03: the database itself refuses double-booking, the same guarantee as room inventory. |
+| 2026-11-21 | Service capacity checked under a `FOR UPDATE` lock on the service row | Simple and correct for low booking volumes; no ledger rows per slot needed. |
+| 2026-11-21 | Walk-in sales use invoices/receipts with no booking (`invoiceForWalkIn`, `recordWalkIn`) | Day visitors get proper sequential financial documents without a fake room booking. |
+| 2026-11-21 | Room charges for services are added on completion, not at booking | Same rule as room service: cancellations and no-shows never need a credit note. |
+| 2026-11-21 | Kitchen tickets copy items and allergens at order time | The kitchen sees what was ordered even if the menu changes later. |

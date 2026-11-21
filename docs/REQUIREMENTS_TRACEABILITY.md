@@ -106,3 +106,9 @@ Only requirements that have been worked on are listed. Everything else is still 
 | ATT-04 | Corrections with permission, reason, audit | Tested | `AttendanceCorrections` | `AttendanceTest`, `PeopleScreensTest` |
 | ATT-05 | Monthly payroll-ready CSV | Tested | `AttendanceExport` | `AttendanceTest` |
 | ATT-06 | Hikvision POC document | Written (device test not done) | `docs/HIKVISION_POC.md` | — |
+| LSR-01 | Bookable services catalogue | Tested | `Service`, Services screen | `LeisureTest`, `LeisureScreensTest` |
+| LSR-02 | Slots, capacity, hours, notice, cancellation, payment | Tested (online public payment later) | `ServiceAvailability`, `ServiceBookings` | `LeisureTest`, `LeisureScreensTest` |
+| LSR-03 | Spa needs therapist + room | Tested | `ServiceBookings::hold`, exclusion constraint | `LeisureTest` |
+| LSR-04 | Menus, allergens, order cut-offs, kitchen tickets | Tested | `MenuCategoryRule`, `KitchenTickets`, Kitchen screen | `LeisureTest`, `LeisureScreensTest` |
+| LSR-05 | In-house charge to folio | Tested | `ServiceBookings::complete`, portal Book | `LeisureTest`, `LeisureScreensTest` |
+| LSR-06 | Optional extras behind flags | Tested (indemnity only; others not built) | `Features` | `LeisureTest` |

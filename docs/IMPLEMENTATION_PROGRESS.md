@@ -13,7 +13,8 @@ New session? Read `docs/MASTER_PROMPT.md`, `docs/FINAL_SPECIFICATION.md` and thi
 - **Milestone 7 — Guest portal:** done (room QR + SMS code sign-in, requests, room-service menu, reception inbox with chime, escalation, bill and self-checkout, reviews with moderation, extra phones).
 - **Milestone 8 — Housekeeping & maintenance:** done (tasks, checkout turnover, Monday deep clean, inspections with rework, room readiness, maintenance and equipment, stock ledger, lost property).
 - **Milestone 9 — Employees & attendance:** done (profiles with approval, departments, weekly rosters, leave, holidays, cover, raw punches + derived attendance, CSV import, manual entry, corrections, monthly export; Hikvision behind an interface).
-- **Next:** **Milestone 10 — Leisure & food** (day passes, braai, VIP, spa, menus, kitchen tickets, charge-to-room; FINAL_SPECIFICATION §18).
+- **Milestone 10 — Leisure & food:** done (service catalogue with hours, slots and capacity, spa therapist + room checks, reception and portal bookings, charge-to-room or walk-in payment with invoice/receipt, meal ordering hours, kitchen tickets, feature flags).
+- **Next:** **Milestone 11 — Reporting** (owner dashboard, analytics, 17:00 report, push, escalations; FINAL_SPECIFICATION §19).
 
 ## Environment
 
@@ -308,3 +309,35 @@ Hikvision connection (needs the device), push notifications (M11), leave balance
 
 ### Tests
 364 passing (42 new in `tests/Feature/Staff`). New screens covered by Livewire tests; not clicked through in a browser (needs a staff sign-in).
+
+## Milestone 10 — Leisure & food (21 Nov 2026)
+
+### Services (LSR-01/02)
+- **Leisure › Services:** name, category (pool/day pass, braai, VIP area, spa, meal, other), price per person or per booking, duration, slot interval, minimum notice, opening hours per weekday, capacity (people, or bookings for e.g. one group per VIP area), largest group, guest cancellation cut-off, restrictions text, and switches for portal booking, charge-to-room and the safety acknowledgement.
+- Times offered are only free slots inside opening hours. Capacity is checked under a row lock, so two receptionists can't overfill a slot.
+
+### Spa (LSR-03)
+**Leisure › Therapists & rooms.** A spa service needs one free therapist **and** one free treatment room; the hold is protected by a database exclusion constraint (like room inventory), so a therapist or room can never be double-booked. Cancelling or a no-show frees them.
+
+### Bookings and payment (LSR-02, LSR-05)
+- **Leisure › Leisure bookings:** reception books for in-house guests or walk-ins (only free times are listed).
+- **In-house guests** can charge eligible services to the room; the charge is added once, when reception marks the booking **Done**.
+- **Walk-ins** pay at reception first (**Take payment**): an invoice without a room booking is issued, and cash gets a receipt at once; EFT waits for verification on the Payments screen as usual.
+- Guests may cancel in the portal until the service's cut-off; reception can cancel any time with a reason. Paid bookings must be refunded through the payment first. No-shows can be recorded after the start time; **no fees are charged** until the lodge sets a policy (PEND-05).
+- **Guest portal › Book:** in-house guests choose a service, date and group size, pick a free time, and see/cancel their bookings.
+
+### Meals and the kitchen (LSR-04)
+- **Leisure › Meal ordering hours:** per menu category (e.g. Breakfast 18:00–07:30 overnight). Orders outside the window are refused with the window shown; the portal menu shows the hours.
+- Every room-service order and every booked meal creates a **kitchen ticket** with the allergens copied from the menu. New `Kitchen staff` role; `/staff` › **Kitchen** refreshes every 15 s: Start → Ready (the guest then sees "On its way"). Room-service tickets close when reception marks the order Done (which is when it's billed); meal bookings are marked Served in the kitchen.
+
+### Feature flags (LSR-06, PEND-14)
+`features.indemnity`, `features.vouchers`, `features.packages`, `features.event_hire` — all **off**. Only the indemnity acknowledgement is built (records the acceptance time on the booking); vouchers, packages and event hire are not built.
+
+### Demo data
+`DemoLeisureSeeder` (local only): DEMO pool day pass, braai area, VIP 1, VIP 2, 60-min spa massage, dinner, one therapist and one treatment room. Names follow the spec; all prices, hours and capacities are placeholders.
+
+### Not yet
+Online self-booking and payment for day visitors on the public website (they book through reception or WhatsApp for now); no-show / late-cancellation fees (PEND-05); vouchers, packages, event hire (PEND-14).
+
+### Tests
+392 passing (28 new in `tests/Feature/Leisure`). Portal Book page checked in the browser at phone width.

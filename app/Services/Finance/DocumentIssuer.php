@@ -79,6 +79,20 @@ class DocumentIssuer
     }
 
     /**
+     * LSR-02/05: an invoice for a customer without a room booking (day visitor, spa walk-in).
+     *
+     * @param  list<array{description: string, quantity: float|int, unit: Money, total: Money}>  $lines
+     */
+    public function invoiceForWalkIn(string $recipientName, array $lines, ?User $by = null): Invoice
+    {
+        if ($lines === [] || trim($recipientName) === '') {
+            throw new InvalidArgumentException('A walk-in invoice needs a name and at least one line.');
+        }
+
+        return DB::transaction(fn (): Invoice => $this->createInvoice(null, $lines, $by, recipientName: trim($recipientName)));
+    }
+
+    /**
      * PAY-04: turn a quotation into an invoice with the same lines, no retyping.
      */
     public function convertQuotation(Quotation $quotation, ?User $by = null): Invoice
@@ -144,7 +158,7 @@ class DocumentIssuer
     /**
      * @param  list<array{description: string, quantity: float|int, unit: Money, total: Money}>  $lines
      */
-    private function createInvoice(?Booking $booking, array $lines, ?User $by, ?Quotation $quotation = null): Invoice
+    private function createInvoice(?Booking $booking, array $lines, ?User $by, ?Quotation $quotation = null, ?string $recipientName = null): Invoice
     {
         [$subtotal, $tax, $total] = $this->totals($lines);
 
@@ -153,7 +167,7 @@ class DocumentIssuer
             'booking_id' => $booking?->id,
             'guest_id' => $booking?->guest_id ?? $quotation?->guest_id,
             'quotation_id' => $quotation?->id,
-            'recipient_name' => $booking?->lead_guest_name ?? $quotation?->recipient_name ?? 'Guest',
+            'recipient_name' => $booking?->lead_guest_name ?? $quotation?->recipient_name ?? $recipientName ?? 'Guest',
             'subtotal_cents' => $subtotal,
             'tax_cents' => $tax,
             'total_cents' => $total,

@@ -17,6 +17,7 @@ enum StaffRole: string
     case MaintenanceWorker = 'maintenance_worker';
     case Inspector = 'inspector';
     case ContentEditor = 'content_editor';
+    case KitchenStaff = 'kitchen_staff';
 
     public function label(): string
     {
@@ -29,6 +30,7 @@ enum StaffRole: string
             self::MaintenanceWorker => 'Maintenance worker',
             self::Inspector => 'Inspector',
             self::ContentEditor => 'Content editor',
+            self::KitchenStaff => 'Kitchen staff',
         };
     }
 

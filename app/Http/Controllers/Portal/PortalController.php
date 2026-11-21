@@ -16,6 +16,7 @@ use App\Models\Booking;
 use App\Models\Guest;
 use App\Models\GuestMessage;
 use App\Models\GuestRequest;
+use App\Models\MenuCategoryRule;
 use App\Models\MenuItem;
 use App\Models\Review;
 use App\Models\Setting;
@@ -79,6 +80,7 @@ class PortalController extends Controller
         return view('portal.menu', [
             'booking' => $this->booking($request),
             'menu' => MenuItem::query()->available()->get()->groupBy('category'),
+            'orderingHours' => MenuCategoryRule::query()->get()->keyBy('category'),
         ]);
     }
 

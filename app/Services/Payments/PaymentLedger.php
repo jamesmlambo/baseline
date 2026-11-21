@@ -9,6 +9,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentRecordStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Booking;
+use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\User;
 use App\Services\Bookings\BookingStateMachine;
@@ -100,6 +101,39 @@ class PaymentLedger
                 $this->markSucceeded($payment, $by);
             } else {
                 $this->sync($booking);
+            }
+
+            return $payment->refresh();
+        });
+    }
+
+    /**
+     * LSR-02: payment at reception for a walk-in invoice (no room booking). Cash is settled at once
+     * with a receipt; an EFT waits for verification like any other.
+     */
+    public function recordWalkIn(Invoice $invoice, PaymentMethod $method, User $by, ?string $bankReference = null): Payment
+    {
+        if ($method->isOnline()) {
+            throw new InvalidArgumentException('Online payments are recorded by the payment provider, not by hand.');
+        }
+
+        if ($invoice->booking_id !== null) {
+            throw new InvalidArgumentException('This invoice belongs to a stay. Record the payment on the booking.');
+        }
+
+        return DB::transaction(function () use ($invoice, $method, $by, $bankReference): Payment {
+            $payment = Payment::query()->create([
+                'invoice_id' => $invoice->id,
+                'method' => $method,
+                'status' => PaymentRecordStatus::PendingVerification,
+                'amount_cents' => $invoice->total_cents,
+                'bank_reference' => $bankReference,
+                'payer_reference' => $invoice->number,
+                'recorded_by' => $by->id,
+            ]);
+
+            if ($method === PaymentMethod::Cash) {
+                $this->markSucceeded($payment, $by);
             }
 
             return $payment->refresh();

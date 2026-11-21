@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Portal\PortalAccessController;
 use App\Http\Controllers\Portal\PortalController;
+use App\Http\Controllers\Portal\PortalLeisureController;
 use App\Http\Middleware\EnsurePortalStay;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,9 @@ Route::prefix('stay')->name('portal.')->group(function (): void {
         Route::post('/menu', [PortalController::class, 'order'])->middleware('throttle:portal-actions')->name('menu.order');
         Route::get('/messages', [PortalController::class, 'messages'])->name('messages');
         Route::post('/messages', [PortalController::class, 'sendMessage'])->middleware('throttle:portal-actions')->name('messages.send');
+        Route::get('/book', [PortalLeisureController::class, 'index'])->name('book');
+        Route::post('/book', [PortalLeisureController::class, 'store'])->middleware('throttle:portal-actions')->name('book.store');
+        Route::post('/book/{serviceBooking}/cancel', [PortalLeisureController::class, 'cancel'])->whereNumber('serviceBooking')->name('book.cancel');
         Route::get('/bill', [PortalController::class, 'bill'])->name('bill');
         Route::post('/checkout', [PortalController::class, 'checkout'])->name('checkout');
         Route::get('/review', [PortalController::class, 'review'])->name('review');
