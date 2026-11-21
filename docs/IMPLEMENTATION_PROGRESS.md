@@ -10,7 +10,8 @@ New session? Read `docs/MASTER_PROMPT.md`, `docs/FINAL_SPECIFICATION.md` and thi
 - **Milestone 4 — Reservations & finance:** done (online booking + fake payment provider, guest profiles, extras, quotations/invoices/receipts/credit notes, EFT verification, dual-approval refunds, admin screens).
 - **Milestone 5 — Reception:** done (check-in/out, guest register, extend stay, charges, front-desk log, document QR + scanner, room calendar, dashboard, offline arrivals sheet).
 - **Milestone 6 — Messaging & WhatsApp bookings:** done (SMS/WhatsApp messaging with log drivers, templates, automations, consent, spend cap, WhatsApp price lists).
-- **Next:** **Milestone 7 — Guest portal** (room QR + SMS one-time code, guest requests and inbox, meal/towel requests, checkout from the portal, reviews; FINAL_SPECIFICATION §13).
+- **Milestone 7 — Guest portal:** done (room QR + SMS code sign-in, requests, room-service menu, reception inbox with chime, escalation, bill and self-checkout, reviews with moderation, extra phones).
+- **Next:** **Milestone 8 — Housekeeping & maintenance** (FINAL_SPECIFICATION §22).
 
 ## Environment
 
@@ -210,3 +211,30 @@ Front desk › **Messages** (log, failures badge, monthly spend shown, Resend), 
 
 ### Tests
 244 passing (29 new). Price-list page checked in the browser.
+
+## Milestone 7 — Guest portal (21 Nov 2026)
+
+### Signing in (GST-01..06)
+- Each room has a printable QR (`/stay/r/{32 random chars}`) that identifies the **room only**. Admin › Accommodation › Rooms › **Room QR** shows it; **Replace QR** rotates it and signs out everyone who used the old one.
+- The guest enters their mobile number; a 6-digit code is sent by SMS **only if** the number belongs to the stay in that room (the booking phone or a number the booker added). The reply is identical either way (no occupancy or number enumeration).
+- Codes: 5 minutes, 5 tries, at most 3 sends per stay per 15 minutes, plus per-device rate limits; an alert is logged at 30 codes/hour (SMS pumping). The code is hashed; the message log stores it as `••••••`. (The **log** SMS driver writes the real text to the Laravel log, which is how you get the code in development.)
+- Other ways in: the signed link in the new **portal welcome** message at check-in (valid until the day after departure), or a 30-minute link reception issues from the booking (**Front desk › Guest portal link (after ID check)**) with the identity check recorded in the audit log.
+- A session ends at check-out, room move, QR replacement, removal of an added phone, or **End guest portal access** on the booking.
+
+### For the guest (`/stay`)
+Home (stay info from settings — Wi-Fi, hours, emergency contacts; empty settings are hidden), **Requests** (towels, toiletries, help, other), **Menu** (room service; charge to room or pay on delivery), **Reception** messages, **Bill** with self-checkout when nothing is owed (otherwise reception gets a checkout request), **Review** (one per stay, optional photos, publish only with consent), **Other guests in the room** (booker only).
+
+### For staff (`/admin`)
+- Front desk › **Guest requests** (On it / Done / Cancel; refreshes every 15 s, red badge) and **Guest messages** (reply in a conversation modal). A **chime and pop-up** play on every admin page when something new arrives. Dashboard stat **Guest portal waiting**.
+- Room service is billed when reception marks the order **Done** — once, on a supplementary invoice.
+- Escalation (`portal:escalate`, every minute): untouched requests/unanswered messages go to managers after `escalation.backup_minutes` (10) and to the owner after `escalation.owner_minutes` (30), by email.
+- Front desk › **Guest menu** (switch items off instead of deleting). Website › **Reviews** (publish/unpublish/reject; publishers only). Published reviews show on the homepage.
+
+### Settings / seeders
+`portal.welcome`, `portal.wifi_name`, `portal.wifi_password`, `portal.facility_hours`, `portal.emergency_contacts` (PENDING, PEND-04). Template `portal_welcome`. `DemoMenuSeeder` (local only, 5 items marked DEMO).
+
+### Not yet
+Payment from the portal (pay links come with a real provider), push notifications (M11), photos on public reviews.
+
+### Tests
+289 passing (45 new in `tests/Feature/Portal`). Portal sign-in link, home, menu, requests and bill checked in the browser at phone width.

@@ -8,6 +8,7 @@ use App\Models\Booking;
 use App\Models\Message;
 use App\Models\PriceList;
 use App\Models\User;
+use App\Services\Portal\PortalAccess;
 
 /**
  * The automated guest messages (MSG-03), each with an idempotency key so retries and
@@ -45,6 +46,14 @@ class BookingMessages
     public function departureDay(Booking $booking): ?Message
     {
         return $this->toGuest('departure_day', $booking);
+    }
+
+    /**
+     * GST-05: the portal link, sent when the guest checks in (they are only "in house" from then).
+     */
+    public function portalWelcome(Booking $booking): ?Message
+    {
+        return $this->toGuest('portal_welcome', $booking, ['portal_link' => app(PortalAccess::class)->linkFor($booking)]);
     }
 
     public function farewell(Booking $booking): ?Message

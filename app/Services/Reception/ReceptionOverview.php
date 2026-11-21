@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Services\Reception;
 
 use App\Enums\BookingStatus;
+use App\Enums\GuestRequestStatus;
 use App\Enums\PaymentRecordStatus;
 use App\Models\Booking;
 use App\Models\FrontDeskLog;
+use App\Models\GuestMessage;
+use App\Models\GuestRequest;
 use App\Models\Payment;
 use App\Models\Room;
 use App\Models\RoomBlock;
@@ -88,6 +91,15 @@ class ReceptionOverview
     public function openComplaints(): int
     {
         return FrontDeskLog::query()->open()->count();
+    }
+
+    /**
+     * Guest-portal requests nobody has picked up yet plus unanswered guest messages (GST-08).
+     */
+    public function guestPortalWaiting(): int
+    {
+        return GuestRequest::query()->where('status', GuestRequestStatus::New)->count()
+            + GuestMessage::query()->where('direction', GuestMessage::IN)->whereNull('read_at')->count();
     }
 
     /**

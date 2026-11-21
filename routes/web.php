@@ -62,6 +62,8 @@ if (! app()->isProduction()) {
     Route::post('/dev/fake-gateway', [FakeGatewayController::class, 'complete'])->middleware('signed')->name('dev.fake-gateway.complete');
 }
 
+require __DIR__.'/portal.php';
+
 Route::get('/contact-us', [ContactController::class, 'show'])->name('contact');
 Route::post('/contact-us', [ContactController::class, 'store'])
     ->middleware('throttle:enquiries')

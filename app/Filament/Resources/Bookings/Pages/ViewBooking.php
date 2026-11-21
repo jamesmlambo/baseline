@@ -22,6 +22,11 @@ class ViewBooking extends ViewRecord
 {
     protected static string $resource = BookingResource::class;
 
+    public function showPortalLinkAction(): Action
+    {
+        return ReceptionActions::showPortalLink();
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -44,6 +49,8 @@ class ViewBooking extends ViewRecord
                 ReceptionActions::moveRoom()->after(fn () => $this->refreshRecord()),
                 ReceptionActions::addCharge()->after(fn () => $this->refreshRecord()),
                 ReceptionActions::logEvent()->after(fn () => $this->refreshRecord()),
+                ReceptionActions::portalLink(),
+                ReceptionActions::endPortalAccess()->after(fn () => $this->refreshRecord()),
             ])->label('Front desk')->button()->icon('heroicon-o-bell')->color('gray'),
             ActionGroup::make([
                 Action::make('quotation')

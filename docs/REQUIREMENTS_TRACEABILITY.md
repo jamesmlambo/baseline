@@ -59,7 +59,7 @@ Only requirements that have been worked on are listed. Everything else is still 
 | PEND-02 | Late EFT path | Tested | `ReinstateBooking`, exception flag | `PaymentsTest` |
 | PEND-06 | Owner-only overrides | Tested | `BookingPolicy::confirmWithoutPayment` | `FinanceAdminTest` |
 | WA-04/05 | Unpaid invoice, confirm on verified payment | Tested (WhatsApp sending in M6) | Mails, `PaymentLedger` | `OnlineBookingTest` |
-| REC-01 | Reception dashboard | Tested (guest requests count arrives with M7) | `ReceptionStats`, arrivals/departures/in-house widgets | `ReceptionScreensTest` |
+| REC-01 | Reception dashboard | Tested | `ReceptionStats`, arrivals/departures/in-house widgets | `ReceptionScreensTest` |
 | REC-02 | Room-by-date calendar | Tested | `RoomCalendar`, Room calendar page | `ReceptionTest`, `ReceptionScreensTest` |
 | REC-03 | Bookings, check-in/out, extend, move, charges, payments | Tested (mid-stay room move later) | `CheckIn`, `CheckOut`, `ExtendStay`, `AddCharge`, `ReassignRoom` | `ReceptionTest`, `ReceptionScreensTest`, `FinanceAdminTest` |
 | REC-04 | Guest register, configurable fields | Tested (required fields VERIFY) | `GuestRegisterEntry`, `register.required_fields` | `ReceptionTest` |
@@ -68,12 +68,20 @@ Only requirements that have been worked on are listed. Everything else is still 
 | OFF-01..03 | Offline read-only contingency | Implemented as printed sheet (OFF-03) | Arrivals sheet page | `ReceptionScreensTest` |
 | MSG-01 | Provider interfaces, log drivers | Tested | `MessageProvider`, `LogProvider` | `MessengerTest` |
 | MSG-02 | Templates, versions, idempotency | Tested | `MessageTemplate`, `Messenger` | `MessengerTest`, `PriceListTest` |
-| MSG-03 | Automations | Tested (portal link M7, staff/owner notices M8/M11) | `BookingMessages`, `RunMessageAutomations` | `AutomationsTest`, `PriceListTest` |
+| MSG-03 | Automations | Tested (staff/owner notices M8/M11) | `BookingMessages`, `RunMessageAutomations` | `AutomationsTest`, `PriceListTest` |
 | MSG-04 | Consent and opt-outs | Tested (inbound STOP needs a provider) | `Messenger::decide`, guest opt-outs | `MessengerTest` |
 | MSG-05 | Status, retries, resend | Tested | `SendMessage` job, Resend action | `MessengerTest` |
 | MSG-06 | Monthly cap, 80% alert, critical bypass | Tested | `SpendGuard` | `MessengerTest` |
 | WA-01..03 | Secure expiring price lists, live prices, no hold | Tested | `CreatePriceList`, `/p/{token}` | `PriceListTest` |
 | WA-06 | Document links by WhatsApp, PDFs by email | Tested | Booking messages + mails | `AutomationsTest` |
 | CHK-03 | Farewell once at checkout | Tested (turnover task M8) | `CheckOut` | `AutomationsTest` |
-| CHK-01/02 | Checkout balance gate, owner override | Tested (portal checkout + turnover in M7/M8) | `CheckOut` | `ReceptionTest` |
+| CHK-01/02 | Checkout balance gate, owner override, portal checkout | Tested (turnover in M8) | `CheckOut::byGuest`, portal Bill page | `ReceptionTest`, `PortalStayTest` |
 | SEC-08 | Upload checks, EXIF stripped | Tested (MIME + size + EXIF; antivirus interface pending) | `StripImageMetadata` | `RedirectAndMediaTest` |
+| GST-01 | Room QR identifies the room, replaceable | Tested | `Room::portalUrl`, `PortalAccess::rotateRoomQr`, Rooms › Room QR | `PortalAccessTest`, `PortalStaffScreensTest` |
+| GST-02 | SMS code, anti-enumeration, expiry, attempts, send limits | Tested | `PortalAccess::requestCode/verifyCode`, rate limiters | `PortalAccessTest` |
+| GST-03 | Code unreadable by staff; reception link after ID check | Tested | `PortalAccess::sendCode`, `receptionLink` | `PortalAccessTest`, `PortalStaffScreensTest` |
+| GST-04 | Booker adds/removes other guests' phones | Tested | Portal › Other guests | `PortalAccessTest` |
+| GST-05 | Signed portal link in welcome message | Tested | `PortalAccess::linkFor`, `portal_welcome` template | `PortalAccessTest` |
+| GST-06 | Session scoped to stay; ends on checkout, move, QR change, revoke | Tested | `PortalAccess::currentStay`, `EnsurePortalStay` | `PortalAccessTest` |
+| GST-07 | Requests, room service, messages, bill, reviews | Tested | `GuestRequests`, `ModerateReview`, portal pages | `PortalStayTest`, `PortalStaffScreensTest` |
+| GST-08 | Reception inbox, alert, escalation | Tested | Guest requests/messages resources, `GuestPortalAlert`, `EscalateGuestRequests` | `PortalStayTest`, `PortalStaffScreensTest` |

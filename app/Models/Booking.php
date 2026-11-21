@@ -30,6 +30,7 @@ use Spatie\Activitylog\Support\LogOptions;
     'arrival_date', 'departure_date', 'lead_guest_name', 'lead_guest_email', 'lead_guest_phone',
     'hold_expires_at', 'total_cents', 'deposit_due_cents', 'preferred_payment_method', 'special_requests',
     'terms_accepted_at', 'created_by', 'reception_code', 'checked_in_at', 'checked_in_by', 'checked_out_at', 'checked_out_by',
+    'portal_revoked_at',
 ])]
 #[Hidden(['public_token', 'reception_code'])]
 class Booking extends Model
@@ -52,7 +53,40 @@ class Booking extends Model
             'terms_accepted_at' => 'immutable_datetime',
             'checked_in_at' => 'immutable_datetime',
             'checked_out_at' => 'immutable_datetime',
+            'portal_revoked_at' => 'immutable_datetime',
         ];
+    }
+
+    /**
+     * @return HasMany<AuthorizedPhone, $this>
+     */
+    public function authorizedPhones(): HasMany
+    {
+        return $this->hasMany(AuthorizedPhone::class);
+    }
+
+    /**
+     * @return HasMany<GuestRequest, $this>
+     */
+    public function guestRequests(): HasMany
+    {
+        return $this->hasMany(GuestRequest::class)->latest('id');
+    }
+
+    /**
+     * @return HasMany<GuestMessage, $this>
+     */
+    public function guestMessages(): HasMany
+    {
+        return $this->hasMany(GuestMessage::class)->orderBy('id');
+    }
+
+    /**
+     * @return HasOne<Review, $this>
+     */
+    public function review(): HasOne
+    {
+        return $this->hasOne(Review::class);
     }
 
     /**

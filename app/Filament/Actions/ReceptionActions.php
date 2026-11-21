@@ -17,7 +17,9 @@ use App\Models\Booking;
 use App\Models\FrontDeskLog;
 use App\Models\Room;
 use App\Services\Availability\AvailabilityService;
+use App\Services\Portal\PortalAccess;
 use App\Support\Money;
+use App\Support\QrCode;
 use App\Support\StayDates;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
@@ -28,7 +30,10 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\HtmlString;
 
 /**
  * Reception buttons for the booking screen (REC-03, REC-04, REC-05, INV-07). Each one calls the
@@ -230,6 +235,70 @@ final class ReceptionActions
             ->requiresConfirmation()
             ->modalDescription('Use if a printed invoice or receipt was lost. The QR on old copies stops working; new PDFs get a new code.')
             ->action(fn (Booking $record) => PaymentActions::run(fn () => ResolveReceptionCode::regenerate($record, auth()->user()), 'QR code replaced'));
+    }
+
+    /**
+     * GST-03: a 30-minute portal link for a guest who cannot receive the code, issued after reception checks ID.
+     */
+    public static function portalLink(): Action
+    {
+        return Action::make('portalLink')
+            ->label('Guest portal link (after ID check)')
+            ->icon('heroicon-o-device-phone-mobile')
+            ->visible(fn (Booking $record): bool => $record->status === BookingStatus::CheckedIn)
+            ->authorize(fn (Booking $record): bool => auth()->user()->can('update', $record))
+            ->schema([
+                TextInput::make('identity_check')
+                    ->label('How did you confirm who the guest is?')
+                    ->placeholder('e.g. Checked passport against booking name')
+                    ->required()
+                    ->maxLength(255),
+            ])
+            ->modalDescription('Only for the guest staying in this booking. The link works for 30 minutes; let the guest scan the QR from this screen.')
+            ->action(function (Booking $record, array $data, Action $action): void {
+                try {
+                    $link = app(PortalAccess::class)->receptionLink($record, auth()->user(), $data['identity_check']);
+                } catch (AuthorizationException|\InvalidArgumentException $exception) {
+                    Notification::make()->title('Not done')->body($exception->getMessage())->danger()->send();
+
+                    return;
+                }
+
+                Notification::make()->title('Portal link ready (30 minutes)')->success()->send();
+                $action->getLivewire()->replaceMountedAction('showPortalLink', ['link' => $link]);
+            });
+    }
+
+    /**
+     * Shows the link from portalLink() as a QR the guest scans from the reception screen.
+     * The page registers it with a showPortalLinkAction() method.
+     */
+    public static function showPortalLink(): Action
+    {
+        return Action::make('showPortalLink')
+            ->modalHeading('Guest portal link')
+            ->modalDescription('Let the guest scan this with their phone. It works once signed in, for 30 minutes.')
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Done')
+            ->schema(fn (array $arguments): array => [
+                Text::make(new HtmlString(
+                    '<div style="text-align:center"><img src="'.QrCode::pngDataUri((string) ($arguments['link'] ?? ''), 240).'" alt="Guest portal QR code" width="240" height="240" style="margin:0 auto">'
+                    .'<p style="margin-top:.5rem;word-break:break-all;font-size:.75rem">'.e((string) ($arguments['link'] ?? '')).'</p></div>',
+                )),
+            ]);
+    }
+
+    public static function endPortalAccess(): Action
+    {
+        return Action::make('endPortalAccess')
+            ->label('End guest portal access')
+            ->icon('heroicon-o-no-symbol')
+            ->color('danger')
+            ->visible(fn (Booking $record): bool => $record->status === BookingStatus::CheckedIn)
+            ->authorize(fn (Booking $record): bool => auth()->user()->can('update', $record))
+            ->schema([Textarea::make('reason')->required()->rows(2)->placeholder('e.g. Guest reported a lost phone')])
+            ->modalDescription('Signs every phone out of this stay\'s portal. The guest can sign in again with a new code.')
+            ->action(fn (Booking $record, array $data) => PaymentActions::run(fn () => app(PortalAccess::class)->endAccess($record, auth()->user(), $data['reason']), 'Portal access ended'));
     }
 
     /**

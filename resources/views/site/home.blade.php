@@ -79,6 +79,24 @@
         @endif
     </section>
 
+    @if ($reviews->isNotEmpty())
+        <section class="mx-auto max-w-6xl px-4 pt-16 sm:px-6" aria-labelledby="reviews-heading">
+            <h2 id="reviews-heading" class="font-display text-3xl font-semibold text-lodge-900">What guests say</h2>
+            <p class="mt-2 text-sm text-ink-900/60">Reviews from verified stays, published with the guest's permission.</p>
+            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach ($reviews as $review)
+                    <figure class="rounded-2xl bg-sand-50 p-6 ring-1 ring-sand-200">
+                        <p class="text-amber-600" aria-label="{{ $review->rating }} out of 5 stars">{{ str_repeat('★', $review->rating) }}<span class="text-sand-300">{{ str_repeat('★', 5 - $review->rating) }}</span></p>
+                        @if ($review->comment)
+                            <blockquote class="mt-3 text-ink-900/80">“{{ $review->comment }}”</blockquote>
+                        @endif
+                        <figcaption class="mt-4 text-sm font-semibold text-lodge-900">{{ $review->display_name ?: 'A verified guest' }}</figcaption>
+                    </figure>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     @if ($posts->isNotEmpty())
         <section class="mx-auto max-w-6xl px-4 pt-16 sm:px-6" aria-labelledby="news-heading">
             <div class="flex items-end justify-between gap-4">

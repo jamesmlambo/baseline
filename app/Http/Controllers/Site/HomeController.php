@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AccommodationType;
 use App\Models\Amenity;
 use App\Models\Post;
+use App\Models\Review;
 use App\Models\Setting;
 use App\Services\Pricing\RateCalculator;
 use App\Support\StayDates;
@@ -35,6 +36,7 @@ class HomeController extends Controller
             'fromPrices' => $fromPrices,
             'posts' => Post::query()->visible()->with('media')->latest('published_at')->take(3)->get(),
             'facilities' => Amenity::query()->published()->where('category', 'property')->take(6)->get(),
+            'reviews' => Review::query()->published()->latest('moderated_at')->take(3)->get(),
             'tagline' => Setting::get('website.tagline'),
             'intro' => Setting::get('website.intro'),
         ]);

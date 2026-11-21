@@ -6,18 +6,21 @@ namespace App\Models;
 
 use Database\Factories\RoomFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * A specific named physical room. Assigned to bookings at booking time (DEC-02).
  */
-#[Fillable(['accommodation_type_id', 'name', 'code', 'internal_notes', 'sort_order', 'is_active', 'is_demo'])]
+#[Fillable(['accommodation_type_id', 'name', 'code', 'portal_token', 'internal_notes', 'sort_order', 'is_active', 'is_demo'])]
+#[Hidden(['portal_token'])]
 class Room extends Model
 {
     /** @use HasFactory<RoomFactory> */
@@ -62,6 +65,34 @@ class Room extends Model
     public function blocks(): HasMany
     {
         return $this->hasMany(RoomBlock::class);
+    }
+
+    /**
+     * The opaque code printed in this room's QR (GST-01). Created on first use.
+     */
+    public function ensurePortalToken(): string
+    {
+        if ($this->portal_token === null) {
+            $this->forceFill(['portal_token' => Str::random(32)])->save();
+        }
+
+        return $this->portal_token;
+    }
+
+    /**
+     * Replace the QR code (e.g. a printed card was taken). Everyone signed in through
+     * the old code is signed out on their next page (GST-06).
+     */
+    public function rotatePortalToken(): string
+    {
+        $this->forceFill(['portal_token' => Str::random(32)])->save();
+
+        return $this->portal_token;
+    }
+
+    public function portalUrl(): string
+    {
+        return route('portal.room', $this->ensurePortalToken());
     }
 
     /**

@@ -6,7 +6,10 @@ namespace App\Providers;
 
 use App\Models\Amenity;
 use App\Models\Faq;
+use App\Models\GuestMessage;
+use App\Models\GuestRequest;
 use App\Models\User;
+use App\Policies\FrontDeskRecordPolicy;
 use App\Policies\WebsiteContentPolicy;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -39,8 +42,18 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('enquiries', fn (Request $request): Limit => Limit::perMinute(5)->by((string) $request->ip()));
 
+        // Guest portal (GST-02): per-device limits on top of the per-stay limits in PortalAccess.
+        RateLimiter::for('portal-codes', fn (Request $request): array => [
+            Limit::perMinute(3)->by('portal-codes:'.$request->ip()),
+            Limit::perHour(10)->by('portal-codes-hour:'.$request->ip()),
+        ]);
+        RateLimiter::for('portal-verify', fn (Request $request): Limit => Limit::perMinute(10)->by('portal-verify:'.$request->ip()));
+        RateLimiter::for('portal-actions', fn (Request $request): Limit => Limit::perMinute(20)->by('portal-actions:'.$request->session()->getId()));
+
         Gate::policy(Faq::class, WebsiteContentPolicy::class);
         Gate::policy(Amenity::class, WebsiteContentPolicy::class);
+        Gate::policy(GuestRequest::class, FrontDeskRecordPolicy::class);
+        Gate::policy(GuestMessage::class, FrontDeskRecordPolicy::class);
 
         Event::listen(RoleAttachedEvent::class, function (RoleAttachedEvent $event): void {
             $this->logRoleChange($event->model, $event->rolesOrIds, 'role_attached');

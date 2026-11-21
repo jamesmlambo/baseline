@@ -57,6 +57,11 @@ class SettingSeeder extends Seeder
             $this->setting('escalation', 'escalation.backup_minutes', 'Escalate unanswered guest request to backup after (minutes)', 10, 'integer', 'PEND-12', 'Recommended default.'),
             $this->setting('escalation', 'escalation.owner_minutes', 'Escalate unanswered guest request to owner after (minutes)', 30, 'integer', 'PEND-12', 'Recommended default.'),
             $this->setting('reports', 'reports.daily_time', 'Daily owner report time', '17:00', 'time'),
+            $this->setting('portal', 'portal.welcome', 'Guest portal: welcome message', null, 'text', 'PEND-04', 'Shown at the top of the guest portal.'),
+            $this->setting('portal', 'portal.wifi_name', 'Guest portal: Wi-Fi network name', null, 'string', 'PEND-04'),
+            $this->setting('portal', 'portal.wifi_password', 'Guest portal: Wi-Fi password', null, 'string', 'PEND-04', 'Only shown to signed-in guests.'),
+            $this->setting('portal', 'portal.facility_hours', 'Guest portal: facility hours', null, 'text', 'PEND-04', 'e.g. pool, spa, breakfast times.'),
+            $this->setting('portal', 'portal.emergency_contacts', 'Guest portal: emergency contacts', null, 'text', 'PEND-04', 'Night duty number, nearest hospital, etc. Must be supplied by the lodge.'),
         ];
     }
 

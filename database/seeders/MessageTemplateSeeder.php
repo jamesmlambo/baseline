@@ -55,6 +55,8 @@ class MessageTemplateSeeder extends Seeder
                 'Hi {{ guest_name }}, we look forward to welcoming you to Baseline Lodge on {{ arrival_date }}. Your booking details: {{ booking_link }}', $op, false],
             ['departure_day', 'Departure-day reminder',
                 'Good morning {{ guest_name }}, today is your departure day. You can review your account here: {{ booking_link }} or at reception.', $op, false],
+            ['portal_welcome', 'Welcome + guest portal link',
+                'Welcome to Baseline Lodge, {{ guest_name }}! Order meals, ask for towels, message reception and see your bill here: {{ portal_link }} (or scan the QR code in your room).', $op, false],
             ['farewell', 'Thank you and safe travels',
                 'Thank you for staying with us, {{ guest_name }}. Safe travels from everyone at Baseline Lodge!', $op, false],
             ['feedback_request', 'Feedback request (optional)',

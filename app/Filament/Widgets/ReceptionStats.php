@@ -6,6 +6,7 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Pages\RoomCalendarPage;
 use App\Filament\Resources\Bookings\BookingResource;
+use App\Filament\Resources\GuestRequests\GuestRequestResource;
 use App\Filament\Resources\Payments\PaymentResource;
 use App\Filament\Resources\RoomBlocks\RoomBlockResource;
 use App\Filament\Widgets\Concerns\FrontDeskOnly;
@@ -31,6 +32,7 @@ class ReceptionStats extends StatsOverviewWidget
         $exceptions = $overview->paymentExceptions();
         $expiring = $overview->holdsExpiringSoon();
         $complaints = $overview->openComplaints();
+        $portalWaiting = $overview->guestPortalWaiting();
 
         return [
             Stat::make('Arrivals today', $overview->arrivals()->count())
@@ -53,6 +55,11 @@ class ReceptionStats extends StatsOverviewWidget
             Stat::make('Holds expiring in 2 h', $expiring)
                 ->color($expiring > 0 ? 'warning' : 'gray')
                 ->url(BookingResource::getUrl()),
+            Stat::make('Guest portal waiting', $portalWaiting)
+                ->description('New requests and unanswered messages')
+                ->icon('heroicon-o-bell-alert')
+                ->color($portalWaiting > 0 ? 'danger' : 'success')
+                ->url(GuestRequestResource::getUrl()),
             Stat::make('Open complaints / lost keys', $complaints)
                 ->color($complaints > 0 ? 'danger' : 'success')
                 ->description($overview->roomsBlockedToday().' room(s) out of service')

@@ -51,3 +51,9 @@ Record every compatibility or design decision here (MASTER_PROMPT §0).
 | 2026-11-21 | Room calendar rendered server-side from the room-night ledger (no FullCalendar package) | Shows exactly what the booking engine holds; fewer dependencies. |
 | 2026-11-21 | Guest register required fields are a setting (`register.required_fields`) | The legal requirement is unverified (REC-04, COMPLIANCE_TODO). |
 | 2026-11-21 | Concurrency tests use `DatabaseTruncation` and a second connection | `RefreshDatabase` transactions are invisible to other connections, so a true race can't be shown with them. |
+| 2026-11-21 | Room QR identifies the room only; access needs a 6-digit SMS code to a phone on the stay | A photographed or left-behind QR gives a later guest or visitor nothing (GST-01/02). |
+| 2026-11-21 | Portal session bound to stay, room, QR token hash and phone; re-checked on every request | Check-out, room move, QR rotation, phone removal or "End access" end access immediately without tracking sessions (GST-06). |
+| 2026-11-21 | Portal codes sent straight to the provider, logged with the code blanked | Staff can see a code was sent but can never read it (GST-03). |
+| 2026-11-21 | Room service billed when reception marks it done, inside a row lock | No charges for orders that never arrived; double clicks can't bill twice. |
+| 2026-11-21 | Reception alert = Livewire poll (15 s) + Web Audio chime on every admin page | No websockets or push service needed yet (M11 may replace it). |
+| 2026-11-21 | Review publish needs consent in code **and** a DB CHECK | A review can never go public without the guest's permission. |

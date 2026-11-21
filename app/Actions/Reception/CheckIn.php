@@ -12,6 +12,7 @@ use App\Models\GuestRegisterEntry;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\Bookings\BookingStateMachine;
+use App\Services\Messaging\BookingMessages;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -23,7 +24,10 @@ use InvalidArgumentException;
  */
 class CheckIn
 {
-    public function __construct(private readonly BookingStateMachine $stateMachine) {}
+    public function __construct(
+        private readonly BookingStateMachine $stateMachine,
+        private readonly BookingMessages $messages,
+    ) {}
 
     /**
      * @param  array{full_name?: string, id_type?: ?string, id_number?: ?string, nationality?: ?string, home_address?: ?string, vehicle_registration?: ?string, number_of_guests?: ?int}  $register
@@ -75,7 +79,10 @@ class CheckIn
                 ]);
             }
 
-            return $booking->refresh();
+            $booking->refresh();
+            DB::afterCommit(fn () => $this->messages->portalWelcome($booking));
+
+            return $booking;
         });
     }
 
