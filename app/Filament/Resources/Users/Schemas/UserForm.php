@@ -50,6 +50,8 @@ class UserForm
                         CheckboxList::make('role_names')
                             ->hiddenLabel()
                             ->options(StaffRole::options())
+                            // Only an Owner may give or remove the Owner role (enforced again in SyncStaffRoles).
+                            ->disableOptionWhen(fn (string $value): bool => $value === StaffRole::Owner->value && ! auth()->user()?->hasRole(StaffRole::Owner->value))
                             ->columns(2)
                             ->required(),
                     ]),

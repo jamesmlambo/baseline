@@ -89,3 +89,5 @@ Record every compatibility or design decision here (MASTER_PROMPT §0).
 | 2026-11-21 | Refused access logged from the exception handler (render callback returning null) | One place covers policies, Filament and abort(403) without changing the normal 403 page. |
 | 2026-11-21 | `spatie/laravel-backup` with a separate `backups` disk; restore proven by `backup:restore-test` into a `_restore_test` scratch database | The approved package; the command can only ever create/drop a database with that suffix. |
 | 2026-11-21 | No Content-Security-Policy yet | Filament and Livewire rely on inline scripts; a strict CSP needs nonce support and testing at go-live. |
+| 2026-11-21 | Final verification: bookings and enquiries encrypt their contact copies; booking audit entries no longer copy email/phone | SEC-07 applied consistently; no search depends on these columns. |
+| 2026-11-21 | Role changes go through `SyncStaffRoles`; only an Owner grants/removes Owner | Stops an Administrator escalating to Owner (financial overrides, anonymisation). |

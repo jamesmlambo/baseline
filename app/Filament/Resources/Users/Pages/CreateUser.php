@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Users\Pages;
 
+use App\Actions\Staff\SyncStaffRoles;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class CreateUser extends CreateRecord
 {
@@ -21,9 +23,11 @@ class CreateUser extends CreateRecord
         $roleNames = $data['role_names'] ?? [];
         unset($data['role_names']);
 
-        $user = User::query()->create($data);
-        $user->syncRoles($roleNames);
+        return DB::transaction(function () use ($data, $roleNames): User {
+            $user = User::query()->create($data);
+            app(SyncStaffRoles::class)->handle($user, array_values($roleNames), auth()->user(), 'data.role_names');
 
-        return $user;
+            return $user;
+        });
     }
 }

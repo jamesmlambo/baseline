@@ -36,6 +36,7 @@ npm run build
 | 2026-11-21 | M11 | 410 | All passed. Owner dashboard and report archive by Livewire tests (owner sign-in needs 2FA). |
 | 2026-11-21 | M12 | 425 | All passed. Channel import, iCal and monitoring by feature tests with a fake connected driver; no real provider. |
 | 2026-11-21 | M13 | 433 | Privacy, security, readiness tests added; accessibility checked in the browser; backup restore test passed. |
+| 2026-11-21 | Final verification | 439 | All passed (parallel). Pint, build, composer audit, npm audit clean. Fixes: role escalation, contact encryption, walk-in double payment, log masking. |
 
 ## Global acceptance criteria (FINAL_SPECIFICATION §23)
 

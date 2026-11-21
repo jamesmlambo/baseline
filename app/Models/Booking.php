@@ -44,6 +44,9 @@ class Booking extends Model
             'status' => BookingStatus::class,
             'payment_status' => PaymentStatus::class,
             'attribution' => 'array',
+            // SEC-07: contact details encrypted at rest, like the guest profile.
+            'lead_guest_email' => 'encrypted',
+            'lead_guest_phone' => 'encrypted',
             'source' => BookingSource::class,
             'arrival_date' => 'immutable_date',
             'departure_date' => 'immutable_date',
@@ -206,8 +209,9 @@ class Booking extends Model
         return LogOptions::defaults()
             ->useLogName('bookings')
             ->logOnly([
+                // Contact details are deliberately not copied into the audit log (PRIV-01).
                 'status', 'payment_status', 'arrival_date', 'departure_date',
-                'lead_guest_name', 'lead_guest_email', 'lead_guest_phone', 'hold_expires_at', 'total_cents',
+                'lead_guest_name', 'hold_expires_at', 'total_cents',
             ])
             ->logOnlyDirty()
             ->dontLogEmptyChanges();

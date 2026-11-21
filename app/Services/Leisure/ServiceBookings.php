@@ -159,6 +159,13 @@ class ServiceBookings
         }
 
         DB::transaction(function () use ($booking, $reason): void {
+            // A payment taken at the same moment must win: re-check under the same row lock takePayment uses.
+            $locked = ServiceBooking::query()->whereKey($booking->id)->lockForUpdate()->firstOrFail();
+
+            if ($locked->status !== ServiceBookingStatus::Confirmed || $locked->invoice_id !== null) {
+                throw new InvalidArgumentException('This booking has just been paid or closed. Refresh and check it.');
+            }
+
             $booking->forceFill(['status' => ServiceBookingStatus::Cancelled, 'cancelled_at' => now(), 'cancel_reason' => mb_substr(trim($reason), 0, 255)])->save();
             $this->release($booking);
         });
@@ -257,6 +264,18 @@ class ServiceBookings
         }
 
         return DB::transaction(function () use ($booking, $method, $by, $bankReference): ServiceBooking {
+            // Two clicks at once must not create two invoices and two payments: re-check under a row lock.
+            /** @var ServiceBooking $locked */
+            $locked = ServiceBooking::query()->whereKey($booking->id)->lockForUpdate()->firstOrFail();
+
+            if ($locked->invoice_id !== null) {
+                throw new InvalidArgumentException('Payment has already been taken.');
+            }
+
+            if ($locked->status === ServiceBookingStatus::Cancelled) {
+                throw new InvalidArgumentException('Nothing to pay.');
+            }
+
             $unit = $booking->service->pricing === Service::PER_BOOKING ? $booking->total_cents : $booking->service->price_cents;
             $quantity = $booking->service->pricing === Service::PER_BOOKING ? 1 : $booking->party_size;
 

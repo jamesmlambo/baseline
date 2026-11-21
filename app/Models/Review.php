@@ -33,7 +33,7 @@ class Review extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('photos')->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+        $this->addMediaCollection('photos')->useDisk('local')->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
     }
 
     /**

@@ -31,6 +31,9 @@ class Enquiry extends Model
             'type' => EnquiryType::class,
             'status' => EnquiryStatus::class,
             'attribution' => 'array',
+            // SEC-07: contact details encrypted at rest.
+            'email' => 'encrypted',
+            'phone' => 'encrypted',
             'arrival_date' => 'immutable_date',
             'departure_date' => 'immutable_date',
             'quoted_total_cents' => MoneyCast::class,

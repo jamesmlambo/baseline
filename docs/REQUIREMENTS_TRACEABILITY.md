@@ -25,14 +25,14 @@ Only requirements that have been worked on are listed. Everything else is still 
 | INV-06 | Re-check inside the transaction | Tested | `PlaceBooking` savepoint retry | `LastRoomRaceTest` |
 | INV-07 | Audited reassignment with reason | Tested (portal/housekeeping hooks in M7/M8) | `ReassignRoom` | `InventoryTest` |
 | BOOK-01 | One engine for all sources | Implemented (callers arrive in M4–M6, M12) | `PlaceBooking`, `BookingSource` | `PlaceBookingTest` |
-| BOOK-02 | Multi-room bookings | Tested (groups, extras, coupons in M4) | `BookingRequest` | `PlaceBookingTest` |
+| BOOK-02 | Multi-room bookings | Partly: engine supports several rooms per booking (tested); no screen books more than one room, and discounts/coupons are NOT built (final verification) | `BookingRequest` | `PlaceBookingTest` |
 | BOOK-03 | Valid transitions + history | Tested | `BookingStateMachine` | `BookingStateMachineTest` |
 | BOOK-04 | Every hold expires; released every minute | Tested | `ReleaseExpiredHolds`, scheduler, DB CHECK | `BookingStateMachineTest` |
 | BOOK-05 | Source + external reference recorded | Implemented | `bookings` columns | — |
 | WEB-06 | Prices from the rate engine | Tested | `RateCalculator`, public room pages | `InventoryTest`, `PublicSiteTest` |
 | §5.1 | All 20 public pages | Tested | `routes/web.php`, `resources/views/site` | `PublicSiteTest` |
 | WEB-01 | Mobile-first, configurable branding | Implemented (brand tokens in `app.css`; admin-editable branding pending client assets) | Layout | Manual 375 px check |
-| WEB-02 | WCAG 2.1 AA, Lighthouse ≥ 90 | Partly (semantic markup, labels, focus, skip link). Full audit in M13. | Layout, forms | — |
+| WEB-02 | WCAG 2.1 AA, Lighthouse ≥ 90 | Partly: automated heading/label/alt/contrast checks pass (M13); Lighthouse not run, no screen-reader test | Layout, forms | — |
 | WEB-03 | Responsive images | Implemented | `HasWebImages` conversions + srcset | — |
 | WEB-04 | SEO, OG, sitemap, structured data | Tested | Layout, `SitemapController` | `PublicSiteTest` |
 | WEB-05 | Old-URL redirects | Tested | `RedirectController`, Redirects screen | `RedirectAndMediaTest` |
@@ -55,7 +55,7 @@ Only requirements that have been worked on are listed. Everything else is still 
 | PAY-07 | Manual EFT verified by authorised staff | Tested | `VerifyEftPayment` | `PaymentsTest`, `FinanceAdminTest` |
 | PAY-08 / DEC-06 | Dual-approval refunds | Tested (code + DB) | `RefundWorkflow`, CHECK | `PaymentsTest`, `FinanceAdminTest` |
 | PAY-09 | No card data stored | Implemented (hosted page only) | Gateway design | — |
-| PAY-10 | Exceptions queue, reconciliation | Implemented (queue); CSV export in M11 | Payments screen | `PaymentsTest` |
+| PAY-10 | Exceptions queue, reconciliation | Partly: exceptions queue built; reconciliation CSV export NOT built (final verification) | Payments screen | `PaymentsTest` |
 | PEND-02 | Late EFT path | Tested | `ReinstateBooking`, exception flag | `PaymentsTest` |
 | PEND-06 | Owner-only overrides | Tested | `BookingPolicy::confirmWithoutPayment` | `FinanceAdminTest` |
 | WA-04/05 | Unpaid invoice, confirm on verified payment | Tested (WhatsApp sending in M6) | Mails, `PaymentLedger` | `OnlineBookingTest` |
@@ -128,3 +128,9 @@ Only requirements that have been worked on are listed. Everything else is still 
 | PRIV-03 | Retention per data type, legal hold, anonymisation, nothing deleted until approved | Tested | `GuestPrivacy`, `RetentionReview`, `privacy:retention` | `PrivacyAndSecurityTest` |
 | PRIV-05 | Encrypted backups, tested restore | Tested (restore run 21 Nov 2026) | `config/backup.php`, `backup:restore-test` | docs/BACKUP_RESTORE.md |
 | ACC-10 | No demo/fake drivers in production; PENDING flagged | Tested | `ProductionReadiness`, `app:production-check` | `PrivacyAndSecurityTest` |
+| OBK-02 | Payment methods in configured order, Instant EFT first | Tested | `PaymentMethod::forWebsite`, booking page | `OnlineBookingTest` |
+| PRIV-02 | Consent records, opt-outs respected by automations | Tested | `Messenger::decide`, guest opt-outs, marketing consent | `MessengerTest`, `OnlineBookingTest` |
+| PRIV-04 | Compliance VERIFY list | Documented | `docs/COMPLIANCE_TODO.md` | — |
+| GST-09 | RECOMMENDED: pre-check-in link, preferences with consent | NOT built (recommended item) | — | — |
+| SEC-06 | Only an Owner can give or remove the Owner role | Tested (final verification fix) | `SyncStaffRoles`, staff form | `VerificationFixesTest` |
+| SEC-07 | Booking and enquiry contact details encrypted, kept out of the audit log | Tested (final verification fix) | `Booking`/`Enquiry` casts, migration `2026_12_02_100000` | `VerificationFixesTest` |
