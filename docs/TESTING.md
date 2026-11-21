@@ -31,3 +31,4 @@ npm run build
 | 2026-11-21 | M6 | 244 | All passed. Memory limit for tests raised to 512 MB. WhatsApp price-list page checked in the browser. |
 | 2026-11-21 | M7 | 289 | All passed. Portal pages checked in the browser at 375 px; admin portal screens covered by Livewire tests. |
 | 2026-11-21 | M8 | 322 | All passed. New admin and staff screens covered by Livewire tests only (sign-in needed for a manual check). |
+| 2026-11-21 | M9 | 364 | All passed. New HR and staff screens covered by Livewire tests only. |

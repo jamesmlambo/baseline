@@ -63,3 +63,9 @@ Record every compatibility or design decision here (MASTER_PROMPT §0).
 | 2026-11-21 | Rework = a child task with only the failed items, for the same worker; its completion opens a new inspection | HK-05 rework and re-inspection with one mechanism and a full history. |
 | 2026-11-21 | Stock is a movement ledger with no editable quantity; rows are immutable | HK-09: counts can always be explained; corrections are visible adjustments. |
 | 2026-11-21 | Check-in warns, but does not block, when the room isn't Ready | Blocking would stop reception when the inspector is unavailable; the owner override exists for the Ready gate itself. |
+| 2026-11-21 | Raw `attendance_punches` (immutable, composite dedup key) kept apart from derived `attendance_days` | ATT-02: re-imports are harmless, and attendance can always be recalculated or explained from the source events. |
+| 2026-11-21 | Roster resolved on the fly (change → leave → holiday → weekly pattern) instead of storing every future day | Fewer rows, and a roster or leave change takes effect everywhere at once. |
+| 2026-11-21 | A rostered day is only decided after its clock-out window closes; corrected days are never recalculated | Avoids premature "Absent" and protects audited manual corrections (ATT-03/04). |
+| 2026-11-21 | Off-duty suppression lives in `StaffAlert::via()` | EMP-04 applies to every staff notice in one place; urgent notices bypass it. |
+| 2026-11-21 | HR access = Owner and Manager only, not Administrator | The administrator role is technical (users, settings); employee and attendance records are personal data (PRIV-01). |
+| 2026-11-21 | Hikvision adapter is a stub behind `AttendanceSource`; CSV import is the working path | No live integration until the device test passes (ATT-06); CSV works with the device's own export today. |

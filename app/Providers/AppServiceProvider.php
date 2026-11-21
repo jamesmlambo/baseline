@@ -6,15 +6,26 @@ namespace App\Providers;
 
 use App\Models\Amenity;
 use App\Models\Asset;
+use App\Models\AttendanceDay;
+use App\Models\AttendanceImport;
+use App\Models\AttendancePunch;
 use App\Models\CleaningEstimate;
+use App\Models\Department;
+use App\Models\Employee;
 use App\Models\Faq;
 use App\Models\GuestMessage;
 use App\Models\GuestRequest;
+use App\Models\LeaveRequest;
 use App\Models\MaintenanceSchedule;
+use App\Models\PublicHoliday;
+use App\Models\RosterChange;
+use App\Models\RosterPattern;
+use App\Models\Shift;
 use App\Models\TaskChecklistTemplate;
 use App\Models\User;
 use App\Policies\FrontDeskRecordPolicy;
 use App\Policies\OperationsRecordPolicy;
+use App\Policies\PeopleRecordPolicy;
 use App\Policies\WebsiteContentPolicy;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -63,6 +74,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(MaintenanceSchedule::class, OperationsRecordPolicy::class);
         Gate::policy(TaskChecklistTemplate::class, OperationsRecordPolicy::class);
         Gate::policy(CleaningEstimate::class, OperationsRecordPolicy::class);
+
+        foreach ([Employee::class, Department::class, Shift::class, RosterPattern::class, RosterChange::class, PublicHoliday::class, LeaveRequest::class, AttendanceDay::class, AttendancePunch::class, AttendanceImport::class] as $peopleModel) {
+            Gate::policy($peopleModel, PeopleRecordPolicy::class);
+        }
 
         Event::listen(RoleAttachedEvent::class, function (RoleAttachedEvent $event): void {
             $this->logRoleChange($event->model, $event->rolesOrIds, 'role_attached');

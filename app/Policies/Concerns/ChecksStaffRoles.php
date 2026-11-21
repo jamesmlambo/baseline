@@ -26,6 +26,14 @@ trait ChecksStaffRoles
     }
 
     /**
+     * EMP-03: the owner and managers see and manage everyone's HR records.
+     */
+    protected function managesPeople(User $user): bool
+    {
+        return $this->hasRole($user, StaffRole::Owner, StaffRole::Manager);
+    }
+
+    /**
      * Administrator, Owner, Manager and Receptionist.
      */
     protected function isFrontDesk(User $user): bool

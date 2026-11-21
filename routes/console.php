@@ -7,6 +7,8 @@ use App\Actions\Housekeeping\GenerateDeepCleans;
 use App\Actions\Housekeeping\RunMaintenanceSchedules;
 use App\Actions\Messaging\RunMessageAutomations;
 use App\Actions\Portal\EscalateGuestRequests;
+use App\Services\Staff\Attendance\AttendanceCalculator;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
@@ -48,6 +50,21 @@ Artisan::command('housekeeping:deep-cleans', function (GenerateDeepCleans $actio
 Artisan::command('maintenance:run-schedules', function (RunMaintenanceSchedules $action): void {
     $this->info("Created {$action->handle()} preventive maintenance task(s).");
 })->purpose('Create tasks for preventive maintenance that is due (HK-08)');
+
+Artisan::command('attendance:derive {--date= : Work date (YYYY-MM-DD); default yesterday and today}', function (AttendanceCalculator $calculator): void {
+    $dates = $this->option('date')
+        ? [CarbonImmutable::parse((string) $this->option('date'), 'Africa/Johannesburg')]
+        : [CarbonImmutable::yesterday('Africa/Johannesburg'), CarbonImmutable::today('Africa/Johannesburg')];
+
+    foreach ($dates as $date) {
+        $this->line($date->toDateString().': '.$calculator->deriveDate($date).' day(s) updated');
+    }
+})->purpose('Work out attendance from rosters and punches (ATT-03)');
+
+Schedule::command('attendance:derive')
+    ->hourly()
+    ->withoutOverlapping()
+    ->onOneServer();
 
 Schedule::command('housekeeping:deep-cleans')
     ->mondays()

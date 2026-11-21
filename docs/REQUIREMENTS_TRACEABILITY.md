@@ -96,3 +96,13 @@ Only requirements that have been worked on are listed. Everything else is still 
 | HK-08 | Faults, preventive schedules, equipment history, warranties, costs | Tested | `TaskManager::reportFault`, `RunMaintenanceSchedules`, Equipment | `HousekeepingTest`, `HousekeepingScreensTest` |
 | HK-09 | Stock ledger, low-stock alerts | Tested | `StockLedger` | `HousekeepingTest`, `HousekeepingScreensTest` |
 | HK-10 | Restricted lost-property log | Tested | `LostPropertyItemPolicy` | `HousekeepingTest` |
+| EMP-01 | Profiles, self-completed, approved | Tested | `EmployeeProfiles`, Employees, My details | `PeopleTest`, `PeopleScreensTest` |
+| EMP-02 | Rosters, leave, holidays, changes, cover | Tested | `Roster`, `LeaveManager`, roster screens | `AttendanceTest`, `PeopleTest`, `PeopleScreensTest` |
+| EMP-03 | Staff see only their own; owner/managers see all | Tested | `PeopleRecordPolicy`, My shifts/leave/attendance | `PeopleTest`, `PeopleScreensTest` |
+| EMP-04 | Off duty never absent; no non-urgent notices | Tested | `AttendanceCalculator`, `StaffAlert::via` | `AttendanceTest` |
+| ATT-01 | AttendanceSource: CSV, manual, Hikvision | Tested (Hikvision stub until POC) | `CsvAttendanceSource`, `PunchRecorder::manual`, `HikvisionAttendanceSource` | `AttendanceTest` |
+| ATT-02 | Raw punches separate, idempotent import | Tested | `PunchRecorder::import`, `AttendancePunch::dedupKey` | `AttendanceTest`, `PeopleScreensTest` |
+| ATT-03 | Statuses and clock windows per shift | Tested | `AttendanceCalculator`, `Shift::windowOn` | `AttendanceTest` |
+| ATT-04 | Corrections with permission, reason, audit | Tested | `AttendanceCorrections` | `AttendanceTest`, `PeopleScreensTest` |
+| ATT-05 | Monthly payroll-ready CSV | Tested | `AttendanceExport` | `AttendanceTest` |
+| ATT-06 | Hikvision POC document | Written (device test not done) | `docs/HIKVISION_POC.md` | — |

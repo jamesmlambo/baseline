@@ -12,7 +12,8 @@ New session? Read `docs/MASTER_PROMPT.md`, `docs/FINAL_SPECIFICATION.md` and thi
 - **Milestone 6 — Messaging & WhatsApp bookings:** done (SMS/WhatsApp messaging with log drivers, templates, automations, consent, spend cap, WhatsApp price lists).
 - **Milestone 7 — Guest portal:** done (room QR + SMS code sign-in, requests, room-service menu, reception inbox with chime, escalation, bill and self-checkout, reviews with moderation, extra phones).
 - **Milestone 8 — Housekeeping & maintenance:** done (tasks, checkout turnover, Monday deep clean, inspections with rework, room readiness, maintenance and equipment, stock ledger, lost property).
-- **Next:** **Milestone 9 — Employees & attendance** (profiles, rosters, staff portal, attendance, Hikvision feasibility, CSV; FINAL_SPECIFICATION §17).
+- **Milestone 9 — Employees & attendance:** done (profiles with approval, departments, weekly rosters, leave, holidays, cover, raw punches + derived attendance, CSV import, manual entry, corrections, monthly export; Hikvision behind an interface).
+- **Next:** **Milestone 10 — Leisure & food** (day passes, braai, VIP, spa, menus, kitchen tickets, charge-to-room; FINAL_SPECIFICATION §18).
 
 ## Environment
 
@@ -275,3 +276,35 @@ Rosters, shifts and fair task allocation from the cleaning times (M9); push noti
 
 ### Tests
 322 passing (33 new in `tests/Feature/Housekeeping`). The `/staff` and new `/admin` screens are covered by Livewire tests; not yet clicked through in a browser (needs a staff sign-in).
+
+## Milestone 9 — Employees & attendance (21 Nov 2026)
+
+### Employees (EMP-01, EMP-03)
+- **People › Employees:** profile linked to a login, department, job title, start/end dates, photo, phone and emergency contact (encrypted), and the person's ID on the clock terminal. New profiles start as *Waiting for approval*.
+- Staff edit their own details in `/staff` › **My details** (name they go by, phone, emergency contact, photo). Changes wait until the owner or a manager approves them; managers can't approve their own.
+- HR screens are for the **owner and managers only** (not reception or the administrator). Staff see only their own shifts, leave and attendance.
+
+### Rosters (EMP-02)
+- **Shifts** with clock-in/out windows (opens before start, late-after grace, closes after end). A shift ending before it starts runs past midnight.
+- **Weekly roster** (pick several weekdays at once), **Roster changes & cover** (a different shift, a day off, or covering for someone), **Public holidays** (entered by the lodge, not seeded) and **Leave** (staff ask in `/staff` › My leave; owner/manager approve or decline with a reason).
+- Precedence for a day: roster change → approved leave → public holiday (if that roster line doesn't work holidays) → weekly roster → off.
+- **Roster (week view)** page; `/staff` › **My shifts** shows the next 14 days.
+
+### Attendance (ATT-01..05)
+- **Raw punches** are stored as received and can't be edited or deleted. Each has a composite dedup key (source + device + person + time + direction), so importing the same file twice adds nothing.
+- Sources: **CSV import** (People › Attendance › Import clock CSV), **manual punch** (owner/manager, with a reason, audited) and a **Hikvision** adapter that deliberately refuses to run until the on-device test in `docs/HIKVISION_POC.md` passes. Punches for an unknown terminal ID are kept and linked when that ID is entered on an employee.
+- **Derived days**, worked out hourly (`attendance:derive`) and after every import: Worked, Late, Absent, Incomplete, Off duty, Pending review. A rostered day is decided only after its clock-out window closes. **Off-duty staff are never marked absent**; punches on a day off become *Pending review*.
+- **Corrections** (owner/manager, not your own): status and times with a reason; before/after go to the audit log and the day is locked against recalculation.
+- **Export month (CSV)**: hours and statuses per employee per day, ready for payroll. No pay is calculated (DEC-09). Cells that look like spreadsheet formulas are escaped.
+
+### Notifications (EMP-04)
+Non-urgent staff emails (task assigned, low stock, leave decisions…) are not sent to someone who has an employee profile and is off duty at that moment. Urgent ones (urgent tasks and faults) always go.
+
+### Demo data
+`DemoStaffSeeder` (local only): employees for the demo receptionist, housekeeping, maintenance and inspector logins, with two **DEMO** shifts on weekdays.
+
+### Not yet
+Hikvision connection (needs the device), push notifications (M11), leave balances and pay (out of scope, DEC-09), retention/anonymisation of attendance records (PEND-11, M13).
+
+### Tests
+364 passing (42 new in `tests/Feature/Staff`). New screens covered by Livewire tests; not clicked through in a browser (needs a staff sign-in).

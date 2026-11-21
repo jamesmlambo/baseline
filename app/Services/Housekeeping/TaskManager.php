@@ -240,7 +240,7 @@ class TaskManager
 
         Notification::send(
             User::query()->role([StaffRole::Owner->value, StaffRole::Manager->value])->where('is_active', true)->get(),
-            new StaffAlert("Fault reported: {$task->locationLabel()}", $task->title.' ('.$priority->label().' priority)', url('/admin/tasks')),
+            new StaffAlert("Fault reported: {$task->locationLabel()}", $task->title.' ('.$priority->label().' priority)', url('/admin/tasks'), urgent: $priority === TaskPriority::Urgent),
         );
 
         return $task;
@@ -326,6 +326,7 @@ class TaskManager
             "New task: {$task->title}",
             "{$task->type->label()} at {$task->locationLabel()}, {$task->priority->label()} priority.",
             url('/staff/my-tasks'),
+            urgent: $task->priority === TaskPriority::Urgent,
         ));
     }
 }

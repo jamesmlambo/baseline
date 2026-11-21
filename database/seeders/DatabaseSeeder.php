@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
                 DemoAccommodationSeeder::class,
                 DemoWebsiteSeeder::class,
                 DemoMenuSeeder::class,
+                DemoStaffSeeder::class,
             ]);
         }
     }
