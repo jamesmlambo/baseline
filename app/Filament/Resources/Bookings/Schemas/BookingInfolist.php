@@ -46,6 +46,14 @@ class BookingInfolist
                         TextEntry::make('guest.bookings_count')
                             ->label('Stays with us')
                             ->state(fn (Booking $record): int => $record->guest?->bookings()->count() ?? 1),
+                        TextEntry::make('checked_in_at')->label('Checked in')->dateTime('j M Y H:i')->placeholder('—'),
+                        TextEntry::make('checked_out_at')->label('Checked out')->dateTime('j M Y H:i')->placeholder('—'),
+                        TextEntry::make('register')
+                            ->label('Guest register')
+                            ->state(fn (Booking $record): ?string => ($entry = $record->registerEntry)
+                                ? collect([$entry->full_name, $entry->maskedIdNumber(), $entry->nationality, $entry->vehicle_registration])->filter()->implode(' · ')
+                                : null)
+                            ->placeholder('Not captured yet'),
                     ]),
                 Section::make('Rooms and extras')
                     ->columnSpan(2)
@@ -71,15 +79,21 @@ class BookingInfolist
                 Section::make('Money')
                     ->columnSpan(1)
                     ->schema([
-                        TextEntry::make('total_cents')->label('Total')->formatStateUsing(fn (Money $state): string => $state->format())->weight('bold'),
+                        TextEntry::make('owed')->label('Total invoiced')->state(fn (Booking $record): string => $record->owedTotal()->format())->weight('bold'),
                         TextEntry::make('deposit_due_cents')->label('Needed to confirm')->formatStateUsing(fn (Money $state): string => $state->format()),
-                        TextEntry::make('paid')->label('Paid (verified)')->state(fn (Booking $record): string => $record->currentInvoice()?->amountPaid()->format() ?? 'R 0.00'),
-                        TextEntry::make('balance')->label('Balance due')->state(fn (Booking $record): string => $record->currentInvoice()?->balanceDue()->format() ?? $record->total_cents->format()),
-                        TextEntry::make('invoice')
-                            ->label('Invoice')
-                            ->state(fn (Booking $record): ?string => $record->currentInvoice()?->number)
-                            ->url(fn (Booking $record): ?string => ($invoice = $record->currentInvoice()) ? route('documents.show', ['invoice', $invoice->public_token]) : null, shouldOpenInNewTab: true)
-                            ->placeholder('Not issued'),
+                        TextEntry::make('paid')->label('Paid (verified)')->state(fn (Booking $record): string => $record->paidTotal()->format()),
+                        TextEntry::make('balance')
+                            ->label('Balance due')
+                            ->state(fn (Booking $record): string => $record->balanceDue()->format())
+                            ->color(fn (Booking $record): string => $record->balanceDue()->cents > 0 ? 'danger' : 'success'),
+                        RepeatableEntry::make('invoices')
+                            ->label('Invoices')
+                            ->schema([
+                                TextEntry::make('number')
+                                    ->hiddenLabel()
+                                    ->formatStateUsing(fn ($state, $record): string => $state.' · '.$record->total_cents->format())
+                                    ->url(fn ($record): string => route('documents.show', ['invoice', $record->public_token]), shouldOpenInNewTab: true),
+                            ]),
                     ]),
                 Section::make('History')
                     ->columnSpanFull()

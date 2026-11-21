@@ -8,7 +8,8 @@ New session? Read `docs/MASTER_PROMPT.md`, `docs/FINAL_SPECIFICATION.md` and thi
 - **Milestone 2 — Rooms & booking engine:** done (engine and admin screens). There is no booking UI yet: bookings are created through `PlaceBooking`, and the screens come in M4/M5.
 - **Milestone 3 — Public website:** done (all 20 pages, CMS, SEO, redirects, enquiries).
 - **Milestone 4 — Reservations & finance:** done (online booking + fake payment provider, guest profiles, extras, quotations/invoices/receipts/credit notes, EFT verification, dual-approval refunds, admin screens).
-- **Next:** **Milestone 5 — Reception** (dashboard, room-by-date calendar, check-in/out, guest register, key log, document QR scanner, offline read-only cache; FINAL_SPECIFICATION §11–12).
+- **Milestone 5 — Reception:** done (check-in/out, guest register, extend stay, charges, front-desk log, document QR + scanner, room calendar, dashboard, offline arrivals sheet).
+- **Next:** **Milestone 6 — Messaging & WhatsApp bookings** (SMS/WhatsApp/email interfaces with log drivers, templates, consent, spend cap, live WhatsApp price lists; FINAL_SPECIFICATION §10, §14).
 
 ## Environment
 
@@ -141,3 +142,27 @@ Full flow on the local server: booking BL-U5KXFA (Demo Standard Room + breakfast
 
 ### Tests
 186 passing.
+
+## Milestone 5 — Reception (23 Nov 2026)
+
+### Built
+- **Check in** (booking screen, green button on/after the arrival day, confirmed bookings only): guest register form (full name, ID type/number, nationality, address, vehicle, guests). Required fields come from the setting `register.required_fields` (default: full name only, **VERIFY** with a legal adviser). ID number and address are encrypted; the screen shows the ID masked (`•••••9087`). Optional key handover is logged. A document QR code is created.
+- **Check out:** zero-balance gate (CHK-02). If money is owed only the **Owner** can override, with a reason recorded in the booking history (PEND-06). Warns about keys not returned. (Housekeeping turnover = M8, farewell message = M6.)
+- **Front desk menu:** **Extend stay** (claims the extra nights in the same room, supplementary invoice; refuses if the room is taken), **Move room** (whole stay, before check-in; uses `ReassignRoom`, reason audited), **Add charge** (own invoice), **Log key / items / complaint**.
+- **More menu:** **Replace document QR code** (old printed QRs stop working).
+- **Front-desk log tab** on each booking; complaints and lost keys stay "Open" until resolved.
+- **Money across invoices:** balance = all non-voided invoices − credit notes − verified payments (`Booking::balanceDue()`), used everywhere.
+- **Document QR (REC-06/07):** invoices and receipts carry a QR with `/admin/scan?code=…` (opaque 32-character code, no personal data). **Front desk › Scan document** accepts a USB/Bluetooth scanner, typed code or the camera (jsQR, decoded in the browser). Every scan is in the audit log.
+- **Front desk › Room calendar (REC-02):** 14-night grid from the room-night ledger, colour-coded (hold, confirmed, in house, checked out, blocked), click a stay to open it.
+- **Dashboard (REC-01):** arrivals/departures today, in house, free rooms tonight, guests owing money, EFTs to verify + payment problems, holds expiring in 2 h, open complaints/lost keys, rooms out of service; tables of arrivals, departures and in-house guests. Refreshes every 60 s.
+- **Front desk › Offline arrivals sheet (OFF-01..03):** printable sheet of today's and tomorrow's arrivals and in-house guests (no phone, email or ID). Chosen instead of a browser cache because reception devices are shared and unmanaged; OFF-03 allows this fallback. No bookings or payments offline (DEC-08).
+
+### Packages added
+`bacon/bacon-qr-code` 3.1 (QR images via GD), `jsqr` 1.4 (npm, camera decoding).
+
+### Not yet / limits
+- Moving a guest **partway** through a stay (after check-in) — later; today Move room is for the whole stay before arrival.
+- Checking the new admin screens in a browser needs a staff sign-in with 2FA, so they were tested with Livewire tests only.
+
+### Tests
+215 passing (29 new for reception).

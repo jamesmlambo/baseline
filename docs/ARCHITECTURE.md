@@ -39,4 +39,10 @@ Record every compatibility or design decision here (MASTER_PROMPT §0).
 | 2026-11-22 | Guest email/phone encrypted with HMAC lookup hashes | SEC-07 and BOOK-06 together. |
 | 2026-11-22 | PDFs use built-in Helvetica | DejaVu embedding made each PDF ~880 KB; Helvetica gives ~2 KB and covers the characters used. |
 | 2026-11-22 | Reception bookings always start as a hold with a staff-chosen expiry | No uncontrolled indefinite holds while hold policy is pending (PEND-01). |
+| 2026-11-23 | Booking balance summed over all non-voided invoices (`Booking::balanceDue`) | Extensions and added charges are billed on supplementary invoices, because issued invoices are immutable. |
+| 2026-11-23 | Document QR = `/admin/scan?code=<32 random chars>`, revocable per booking | Opaque, no personal data (REC-07); only opens inside an authenticated admin session; every scan audited. |
+| 2026-11-23 | Camera scanning with `jsqr` in the browser, plus USB-scanner/typed input | `BarcodeDetector` isn't available in Chrome on Windows; jsQR works everywhere and keeps images on the device. |
+| 2026-11-23 | Offline contingency = printable arrivals sheet, not a browser cache | Shared, unmanaged reception devices can't keep cached guest data secure; OFF-03 allows the printed fallback. |
+| 2026-11-23 | Room calendar rendered server-side from the room-night ledger (no FullCalendar package) | Shows exactly what the booking engine holds; fewer dependencies. |
+| 2026-11-23 | Guest register required fields are a setting (`register.required_fields`) | The legal requirement is unverified (REC-04, COMPLIANCE_TODO). |
 | 2026-11-21 | Concurrency tests use `DatabaseTruncation` and a second connection | `RefreshDatabase` transactions are invisible to other connections, so a true race can't be shown with them. |

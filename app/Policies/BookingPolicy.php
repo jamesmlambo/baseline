@@ -59,6 +59,14 @@ class BookingPolicy
             && $booking->status !== BookingStatus::Expired;
     }
 
+    /**
+     * Checking out with money owed is an override (CHK-02, PEND-06): Owner only for now.
+     */
+    public function overrideCheckoutBalance(User $user, Booking $booking): bool
+    {
+        return $this->hasRole($user, StaffRole::Owner);
+    }
+
     public function delete(User $user, Booking $booking): bool
     {
         return false;

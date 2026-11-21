@@ -8,6 +8,7 @@ use App\Actions\Bookings\CancelBooking;
 use App\Actions\Bookings\ReinstateBooking;
 use App\Enums\BookingStatus;
 use App\Filament\Actions\PaymentActions;
+use App\Filament\Actions\ReceptionActions;
 use App\Filament\Resources\Bookings\BookingResource;
 use App\Models\Booking;
 use App\Services\Bookings\BookingStateMachine;
@@ -24,6 +25,8 @@ class ViewBooking extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            ReceptionActions::checkIn()->after(fn () => $this->refreshRecord()),
+            ReceptionActions::checkOut()->after(fn () => $this->refreshRecord()),
             PaymentActions::record()
                 ->visible(fn (Booking $record): bool => $record->status->holdsInventory())
                 ->after(fn () => $this->refreshRecord()),
@@ -37,12 +40,19 @@ class ViewBooking extends ViewRecord
                 ->action(fn (Booking $record) => PaymentActions::run(fn () => app(ReinstateBooking::class)->handle($record, auth()->user()), 'Booking reinstated'))
                 ->after(fn () => $this->refreshRecord()),
             ActionGroup::make([
+                ReceptionActions::extendStay()->after(fn () => $this->refreshRecord()),
+                ReceptionActions::moveRoom()->after(fn () => $this->refreshRecord()),
+                ReceptionActions::addCharge()->after(fn () => $this->refreshRecord()),
+                ReceptionActions::logEvent()->after(fn () => $this->refreshRecord()),
+            ])->label('Front desk')->button()->icon('heroicon-o-bell')->color('gray'),
+            ActionGroup::make([
                 Action::make('quotation')
                     ->label('Issue quotation')
                     ->icon('heroicon-o-document-text')
                     ->authorize(fn (Booking $record): bool => auth()->user()->can('update', $record))
                     ->requiresConfirmation()
                     ->action(fn (Booking $record) => PaymentActions::run(fn () => app(DocumentIssuer::class)->quotationForBooking($record, auth()->user()), 'Quotation issued')),
+                ReceptionActions::revokeQr(),
                 Action::make('confirmWithoutPayment')
                     ->label('Confirm without payment')
                     ->icon('heroicon-o-shield-exclamation')
@@ -70,7 +80,7 @@ class ViewBooking extends ViewRecord
 
     private function refreshRecord(): void
     {
-        $this->record->refresh()->load(['activeBookingRooms.room', 'activeBookingRooms.accommodationType', 'extras', 'statusHistory', 'guest']);
+        $this->record->refresh()->load(['activeBookingRooms.room', 'activeBookingRooms.accommodationType', 'extras', 'statusHistory', 'guest', 'invoices']);
         $this->dispatch('$refresh');
     }
 }

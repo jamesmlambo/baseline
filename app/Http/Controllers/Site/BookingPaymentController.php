@@ -100,13 +100,12 @@ class BookingPaymentController extends Controller
 
     private function amountToPay(Booking $booking): Money
     {
-        $invoice = $booking->currentInvoice();
-        $balance = $invoice?->balanceDue() ?? $booking->total_cents;
+        $balance = $booking->balanceDue();
 
         // Before confirmation only the deposit is required; afterwards, whatever is still owed.
         $target = $booking->status === BookingStatus::Confirmed
             ? $balance
-            : Money::cents(min($booking->deposit_due_cents->cents - ($invoice?->amountPaid()->cents ?? 0), $balance->cents));
+            : Money::cents(min($booking->deposit_due_cents->cents - $booking->paidTotal()->cents, $balance->cents));
 
         return Money::cents(max(0, $target->cents));
     }

@@ -59,5 +59,12 @@ Only requirements that have been worked on are listed. Everything else is still 
 | PEND-02 | Late EFT path | Tested | `ReinstateBooking`, exception flag | `PaymentsTest` |
 | PEND-06 | Owner-only overrides | Tested | `BookingPolicy::confirmWithoutPayment` | `FinanceAdminTest` |
 | WA-04/05 | Unpaid invoice, confirm on verified payment | Tested (WhatsApp sending in M6) | Mails, `PaymentLedger` | `OnlineBookingTest` |
-| REC-03 | Front-desk bookings and payments | Tested (check-in/out in M5) | Bookings screens | `FinanceAdminTest` |
+| REC-01 | Reception dashboard | Tested (guest requests count arrives with M7) | `ReceptionStats`, arrivals/departures/in-house widgets | `ReceptionScreensTest` |
+| REC-02 | Room-by-date calendar | Tested | `RoomCalendar`, Room calendar page | `ReceptionTest`, `ReceptionScreensTest` |
+| REC-03 | Bookings, check-in/out, extend, move, charges, payments | Tested (mid-stay room move later) | `CheckIn`, `CheckOut`, `ExtendStay`, `AddCharge`, `ReassignRoom` | `ReceptionTest`, `ReceptionScreensTest`, `FinanceAdminTest` |
+| REC-04 | Guest register, configurable fields | Tested (required fields VERIFY) | `GuestRegisterEntry`, `register.required_fields` | `ReceptionTest` |
+| REC-05 | Key, items, complaints log | Tested | `FrontDeskLog`, front-desk log tab | `ReceptionTest`, `ReceptionScreensTest` |
+| REC-06/07 | Document QR scanner, opaque revocable codes | Tested | `ResolveReceptionCode`, Scan document page, PDF QR | `ReceptionTest`, `ReceptionScreensTest` |
+| OFF-01..03 | Offline read-only contingency | Implemented as printed sheet (OFF-03) | Arrivals sheet page | `ReceptionScreensTest` |
+| CHK-01/02 | Checkout balance gate, owner override | Tested (portal checkout + turnover in M7/M8) | `CheckOut` | `ReceptionTest` |
 | SEC-08 | Upload checks, EXIF stripped | Tested (MIME + size + EXIF; antivirus interface pending) | `StripImageMetadata` | `RedirectAndMediaTest` |

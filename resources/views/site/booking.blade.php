@@ -6,7 +6,7 @@
     $status = $booking->status;
     $holdExpired = $status === BookingStatus::Hold && $booking->hold_expires_at?->isPast();
     $awaitingEft = $booking->payments->contains(fn ($payment) => $payment->status === PaymentRecordStatus::PendingVerification);
-    $paidSoFar = $invoice?->amountPaid() ?? \App\Support\Money::zero();
+    $paidSoFar = $booking->paidTotal();
     $canPay = in_array($status, [BookingStatus::Hold, BookingStatus::Pending], true) && ! $holdExpired;
     $preferred = $booking->preferred_payment_method;
 @endphp

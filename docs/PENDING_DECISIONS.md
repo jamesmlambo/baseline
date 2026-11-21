@@ -10,7 +10,8 @@ Seeded from `FINAL_SPECIFICATION.md` §3.2. Items with a setting show up in **Ad
 | PEND-03 | Card vs ordinary EFT order | `payments.method_order` | Instant EFT → Card → EFT, configurable. |
 | PEND-04 | Rooms, rates, contact details | `contact.*` (empty) | Nothing invented. Public site shows a DEMO banner. |
 | PEND-05 | Policies, check-in/out times | `booking.check_in_time`, `booking.check_out_time` (empty) | Empty. |
-| PEND-06 | Override authority | — | To do (M4/M5): Owner only by default. |
+| PEND-06 | Override authority | — | Owner only: confirm without payment (M4) and check out with money owed (M5), each with a recorded reason. |
+| REC-04 (VERIFY) | Guest register required fields | `register.required_fields` (full name only) | Staff can capture ID, nationality, address, vehicle; only full name is enforced until a legal adviser confirms. |
 | PEND-07 | Providers (payment, SMS, WhatsApp, channel manager) | `messaging.monthly_cap_*` (empty) | Interfaces + fake drivers to come. |
 | PEND-08 | Custom Laravel vs hybrid PMS | — | Custom Laravel behind interfaces. |
 | PEND-09 | Budgets, named approver | — | Not a build item. |

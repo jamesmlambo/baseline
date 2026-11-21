@@ -37,6 +37,7 @@ class SettingSeeder extends Seeder
             $this->setting('booking', 'booking.hold_minutes_online', 'Online / WhatsApp hold duration (minutes)', 30, 'integer', 'PEND-01', 'Development default only. Reviewers proposed 2 hours; the client has not decided.'),
             $this->setting('booking', 'booking.hold_hours_manual_eft', 'Manual EFT hold duration (hours)', null, 'integer', 'PEND-01', 'Staff choose an expiry for each manual hold until this is decided. Reviewers proposed 12–24 hours.'),
             $this->setting('booking', 'booking.check_in_time', 'Check-in time', null, 'time', 'PEND-05'),
+            $this->setting('booking', 'register.required_fields', 'Guest register: required fields', ['full_name'], 'list', 'VERIFY', 'Which fields the law requires (e.g. ID number, nationality) must be confirmed by a legal adviser. Options: full_name, id_type, id_number, nationality, home_address, vehicle_registration, number_of_guests.'),
             $this->setting('booking', 'booking.check_out_time', 'Check-out time', null, 'time', 'PEND-05'),
             $this->setting('payments', 'payments.method_order', 'Payment method display order', ['instant_eft', 'card', 'eft'], 'list', 'PEND-03', 'Instant EFT first is a client decision (DEC-05). The order of card and ordinary EFT is not yet decided.'),
             $this->setting('payments', 'payments.deposit_percent', 'Payment needed to confirm a booking (% of total)', 100, 'integer', 'PEND-05', 'Development default: full payment confirms the booking. Deposit policy not yet decided.'),

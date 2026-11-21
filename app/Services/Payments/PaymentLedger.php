@@ -186,14 +186,14 @@ class PaymentLedger
     public function sync(Booking $booking): void
     {
         $booking->refresh();
-        $invoice = $booking->currentInvoice();
         $payments = $booking->payments()->get();
 
         $received = $payments->where('status', PaymentRecordStatus::Succeeded)->sum(fn (Payment $payment): int => $payment->amount_cents->cents);
         $refunded = $payments->sum(fn (Payment $payment): int => $payment->refunded_cents->cents);
         $net = $received - $refunded;
         $awaitingVerification = $payments->contains(fn (Payment $payment): bool => $payment->status === PaymentRecordStatus::PendingVerification);
-        $owed = $invoice !== null ? $invoice->total_cents->subtract($invoice->creditedAmount())->cents : $booking->total_cents->cents;
+        // Across all of the booking's invoices: the stay, extensions and added charges.
+        $owed = $booking->invoices()->exists() ? $booking->owedTotal()->cents : $booking->total_cents->cents;
 
         $status = match (true) {
             $refunded > 0 && $net <= 0 => PaymentStatus::Refunded,

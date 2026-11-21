@@ -1,4 +1,4 @@
-@props(['title', 'document', 'contact', 'vatNumber' => null, 'isDemo' => true])
+@props(['title', 'document', 'contact', 'vatNumber' => null, 'isDemo' => true, 'receptionQr' => null])
 <!DOCTYPE html>
 <html lang="en-ZA">
 <head>
@@ -53,6 +53,17 @@
         </table>
 
         {{ $slot }}
+
+        @if ($receptionQr)
+            <table style="width:100%;margin-top:24px;">
+                <tr>
+                    <td style="width:90px;"><img src="{{ $receptionQr }}" width="80" height="80" alt=""></td>
+                    <td class="muted" style="vertical-align:middle;font-size:9px;">
+                        Show this code at reception. It contains no personal information and only works on the lodge's staff system.
+                    </td>
+                </tr>
+            </table>
+        @endif
 
         <p class="foot">
             Baseline Lodge will never ask for your card details by WhatsApp, SMS or chat, and will never change its banking details by message.

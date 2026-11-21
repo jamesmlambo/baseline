@@ -65,6 +65,20 @@ class DocumentIssuer
     }
 
     /**
+     * A supplementary invoice for charges added after booking (extensions, items, services).
+     *
+     * @param  list<array{description: string, quantity: float|int, unit: Money, total: Money}>  $lines
+     */
+    public function invoiceForCharges(Booking $booking, array $lines, ?User $by = null): Invoice
+    {
+        if ($lines === []) {
+            throw new InvalidArgumentException('An invoice needs at least one line.');
+        }
+
+        return DB::transaction(fn (): Invoice => $this->createInvoice($booking, $lines, $by));
+    }
+
+    /**
      * PAY-04: turn a quotation into an invoice with the same lines, no retyping.
      */
     public function convertQuotation(Quotation $quotation, ?User $by = null): Invoice

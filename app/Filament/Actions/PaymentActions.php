@@ -8,6 +8,7 @@ use App\Actions\Payments\VerifyEftPayment;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentRecordStatus;
 use App\Exceptions\InvalidBookingTransitionException;
+use App\Exceptions\OutstandingBalanceException;
 use App\Exceptions\RoomUnavailableException;
 use App\Filament\Forms\MoneyInput;
 use App\Models\Booking;
@@ -144,7 +145,8 @@ final class PaymentActions
             if (! $exception instanceof \InvalidArgumentException
                 && ! $exception instanceof AuthorizationException
                 && ! $exception instanceof RoomUnavailableException
-                && ! $exception instanceof InvalidBookingTransitionException) {
+                && ! $exception instanceof InvalidBookingTransitionException
+                && ! $exception instanceof OutstandingBalanceException) {
                 throw $exception;
             }
 

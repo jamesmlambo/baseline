@@ -8,6 +8,7 @@ use App\Enums\BookingStatus;
 use App\Filament\Resources\Bookings\Pages\CreateBooking;
 use App\Filament\Resources\Bookings\Pages\ListBookings;
 use App\Filament\Resources\Bookings\Pages\ViewBooking;
+use App\Filament\Resources\Bookings\RelationManagers\FrontDeskLogsRelationManager;
 use App\Filament\Resources\Bookings\RelationManagers\PaymentsRelationManager;
 use App\Filament\Resources\Bookings\Schemas\BookingForm;
 use App\Filament\Resources\Bookings\Schemas\BookingInfolist;
@@ -51,6 +52,7 @@ class BookingResource extends Resource
     {
         return [
             PaymentsRelationManager::class,
+            FrontDeskLogsRelationManager::class,
         ];
     }
 

@@ -1,4 +1,4 @@
-<x-pdf-layout :title="$title" :document="$document" :contact="$contact" :vat-number="$vatNumber" :is-demo="$isDemo">
+<x-pdf-layout :title="$title" :document="$document" :contact="$contact" :vat-number="$vatNumber" :is-demo="$isDemo" :reception-qr="$receptionQr">
     <table class="meta">
         <tr>
             <td>

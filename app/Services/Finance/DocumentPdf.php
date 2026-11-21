@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Finance;
 
+use App\Actions\Reception\ResolveReceptionCode;
 use App\Models\CreditNote;
 use App\Models\Invoice;
 use App\Models\Quotation;
 use App\Models\Receipt;
+use App\Support\QrCode;
 use App\Support\SiteContent;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -38,6 +40,9 @@ class DocumentPdf
             'vatNumber' => $this->finance->vatNumber(),
             'contact' => $this->site->contact(),
             'isDemo' => ! app()->isProduction(),
+            'receptionQr' => $document->booking !== null
+                ? QrCode::pngDataUri(ResolveReceptionCode::urlFor($document->booking))
+                : null,
         ])->setPaper('a4')->output();
     }
 
