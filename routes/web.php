@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Dev\FakeGatewayController;
+use App\Http\Controllers\IcalExportController;
 use App\Http\Controllers\PaymentWebhookController;
 use App\Http\Controllers\Site\AvailabilityController;
 use App\Http\Controllers\Site\BookingController;
@@ -64,6 +65,12 @@ if (! app()->isProduction()) {
 
 require __DIR__.'/portal.php';
 
+// CHN-02: per-room availability calendar for a channel (secret link, dates only).
+Route::get('/ical/{token}.ics', IcalExportController::class)
+    ->where('token', '[A-Za-z0-9]{40}')
+    ->middleware('throttle:60,1')
+    ->name('ical.export');
+
 Route::get('/contact-us', [ContactController::class, 'show'])->name('contact');
 Route::post('/contact-us', [ContactController::class, 'store'])
     ->middleware('throttle:enquiries')
@@ -73,7 +80,7 @@ Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 // CMS pages by slug (about-us, house-rules, ...). Must stay last before the fallback.
 Route::get('/{slug}', [PageController::class, 'show'])
-    ->where('slug', '(?!(?:admin|staff|stay|livewire|storage|up|filament|booking|documents|webhooks|dev)$)[a-z0-9-]+')
+    ->where('slug', '(?!(?:admin|staff|stay|livewire|storage|up|filament|booking|documents|webhooks|dev|ical)$)[a-z0-9-]+')
     ->name('page');
 
 // Unknown URLs: follow an old-site redirect if one exists (WEB-05), otherwise 404.

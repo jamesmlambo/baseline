@@ -13,6 +13,7 @@ enum RoomBlockReason: string
     case OwnerUse = 'owner_use';
     case OutOfService = 'out_of_service';
     case Other = 'other';
+    case Channel = 'channel';
 
     public function label(): string
     {
@@ -21,6 +22,7 @@ enum RoomBlockReason: string
             self::OwnerUse => 'Owner use',
             self::OutOfService => 'Out of service',
             self::Other => 'Other',
+            self::Channel => 'Booked on another channel (iCal)',
         };
     }
 

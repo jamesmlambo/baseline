@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             WebsiteContentSeeder::class,
             MessageTemplateSeeder::class,
             TaskChecklistSeeder::class,
+            ChannelSeeder::class,
         ]);
 
         if (app()->environment('local')) {

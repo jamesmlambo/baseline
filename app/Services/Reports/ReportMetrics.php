@@ -16,6 +16,7 @@ use App\Enums\ServiceBookingStatus;
 use App\Enums\TaskStatus;
 use App\Enums\TaskType;
 use App\Models\Booking;
+use App\Models\Channel;
 use App\Models\Room;
 use App\Models\Task;
 use Carbon\CarbonImmutable;
@@ -76,11 +77,17 @@ class ReportMetrics
         $nights = (int) $from->diffInDays($until) + 1;
         $activeRooms = Room::query()->active()->count();
 
-        $blocked = (int) DB::table('room_nights')
-            ->whereNotNull('room_block_id')
-            ->whereNull('released_at')
-            ->whereBetween('night_date', [$from->toDateString(), $until->toDateString()])
-            ->count();
+        $blockedNights = DB::table('room_nights')
+            ->join('room_blocks', 'room_blocks.id', '=', 'room_nights.room_block_id')
+            ->whereNull('room_nights.released_at')
+            ->whereBetween('room_nights.night_date', [$from->toDateString(), $until->toDateString()])
+            ->selectRaw("count(*) filter (where room_blocks.reason <> 'channel') as blocked, count(*) filter (where room_blocks.reason = 'channel') as other_channels")
+            ->first();
+
+        // Nights taken through another channel's calendar (iCal) are not out of service: they stay
+        // available inventory, but we don't know their price, so they are reported separately.
+        $blocked = (int) $blockedNights->blocked;
+        $otherChannels = (int) $blockedNights->other_channels;
 
         $sold = DB::table('room_nights')
             ->join('booking_rooms', 'booking_rooms.id', '=', 'room_nights.booking_room_id')
@@ -98,6 +105,7 @@ class ReportMetrics
         return [
             'rooms_available' => $available,
             'nights_blocked' => $blocked,
+            'nights_other_channels' => $otherChannels,
             'nights_sold' => $nightsSold,
             'occupancy_percent' => $available > 0 ? round($nightsSold / $available * 100, 1) : null,
             'room_revenue_cents' => $revenue,
@@ -238,6 +246,8 @@ class ReportMetrics
                 'messages_failed' => DB::table('messages')->where('status', MessageStatus::Failed->value)->whereBetween('created_at', $range)->count(),
                 'jobs_failed' => DB::table('failed_jobs')->count(),
                 'report_deliveries_failed' => DB::table('report_deliveries')->where('status', 'failed')->count(),
+                'channel_exceptions_open' => DB::table('channel_exceptions')->where('status', 'open')->count(),
+                'channels_stale' => Channel::query()->where('is_enabled', true)->get()->filter->isStale()->count(),
             ],
         ];
     }

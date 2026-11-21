@@ -62,6 +62,7 @@ class SettingSeeder extends Seeder
             $this->setting('features', 'features.vouchers', 'Vouchers (yes/no)', 'no', 'string', 'PEND-14', 'Not built yet. Optional extra.'),
             $this->setting('features', 'features.packages', 'Packages (yes/no)', 'no', 'string', 'PEND-14', 'Not built yet. Optional extra.'),
             $this->setting('features', 'features.event_hire', 'Event hire (yes/no)', 'no', 'string', 'PEND-14', 'Not built yet. Optional extra.'),
+            $this->setting('channels', 'channels.ical_fetch_enabled', 'Fetch channel calendars (iCal) automatically (yes/no)', 'no', 'string', 'PEND-07', 'Off until approved: the server would download calendars from the channel. Until then, paste or upload the calendar file.'),
             $this->setting('reports', 'reports.daily_time', 'Daily owner report time', '17:00', 'time'),
             $this->setting('portal', 'portal.welcome', 'Guest portal: welcome message', null, 'text', 'PEND-04', 'Shown at the top of the guest portal.'),
             $this->setting('portal', 'portal.wifi_name', 'Guest portal: Wi-Fi network name', null, 'string', 'PEND-04'),

@@ -15,7 +15,8 @@ New session? Read `docs/MASTER_PROMPT.md`, `docs/FINAL_SPECIFICATION.md` and thi
 - **Milestone 9 — Employees & attendance:** done (profiles with approval, departments, weekly rosters, leave, holidays, cover, raw punches + derived attendance, CSV import, manual entry, corrections, monthly export; Hikvision behind an interface).
 - **Milestone 10 — Leisure & food:** done (service catalogue with hours, slots and capacity, spa therapist + room checks, reception and portal bookings, charge-to-room or walk-in payment with invoice/receipt, meal ordering hours, kitchen tickets, feature flags).
 - **Milestone 11 — Reporting:** done (owner dashboard with documented metrics and date bases, 17:00 daily report with stored snapshot, email, push (log driver), delivery log and retries, report archive, day close, campaign tracking).
-- **Next:** **Milestone 12 — External channels** (channel-manager abstraction, readiness, monitoring, reconciliation; FINAL_SPECIFICATION §19 CHN-01..04, after PEND-08).
+- **Milestone 12 — External channels:** done as far as possible without a provider (ChannelManager interface + null driver, idempotent OTA import with room assignment or exception queue, sync log and stale warnings, scheduled sync, iCal export/import fallback).
+- **Next:** **Milestone 13 — Final quality** (compliance config, security, backup restore, performance, accessibility, full tests, production checklist; FINAL_SPECIFICATION §22).
 
 ## Environment
 
@@ -371,3 +372,34 @@ Real web push (needs approval: package + VAPID keys), push for urgent staff aler
 
 ### Tests
 410 passing (18 new in `tests/Feature/Reports`). Dashboard and archive covered by Livewire tests; not opened in a browser (needs the owner's 2FA sign-in).
+
+## Milestone 12 — External channels (21 Nov 2026)
+
+Built behind interfaces so either PEND-08 path (custom Laravel + channel manager, or a hybrid PMS) stays open. **Nothing is connected**: no provider has been chosen (PEND-07/08).
+
+### Channel manager interface (CHN-01)
+`ChannelManager`: fetch reservations, push availability, push rates, and an honest `isConnected()`. Only the **null driver** exists. **Bookings › Channels** lists Booking.com and LekkeSlaap (DEC-03), created switched off; each has room-code mappings, iCal rooms and a sync log.
+
+### Importing OTA reservations (CHN-03, DEC-02)
+`ImportChannelReservation` is what a real driver will call:
+- New reservation → booked through the normal booking engine, confirmed, **with a physical room assigned**, source Booking.com/LekkeSlaap, external reference kept. Priced at the channel's total when given (invoice + room revenue use it).
+- The same reservation sent again changes nothing (unique per channel + reference).
+- **No room free, unknown room code, changed dates, or a cancellation for a guest already in house** → nothing is overbooked or moved automatically; it goes to **Bookings › Channel problems** and reception, managers and the owner get an urgent alert. "Try again" re-places it (e.g. after freeing a room); otherwise resolve it with a note.
+- Cancellations from the channel cancel the booking and free the room.
+
+### Monitoring (CHN-04)
+- `channels:sync` every 15 minutes for enabled channels; every attempt is logged (OK / failed with the error / **not connected**).
+- A channel counts as synced only after a successful run through a connected driver; otherwise it shows **Stale** once past its threshold. The screens say plainly that no channel manager is connected — no real-time claims. Channel problems and stale channels show on the owner dashboard.
+
+### iCal fallback (CHN-02)
+Per channel and physical room, clearly labelled as limited (dates only, not a channel manager):
+- **Export:** a secret `/ical/{token}.ics` link the channel can read (taken dates only; no prices or guests; nights that came from that channel's own calendar are left out to avoid echoes). Off by default; the link can be replaced.
+- **Import:** upload or paste the channel's calendar. Dates taken there block the room here (reason "Booked on another channel"); removed or moved dates are released; repeats change nothing. A clash with one of our bookings is **not** double-booked — it becomes a channel problem with an urgent alert.
+- Automatic fetching from the channel's link is built but **off** (`channels.ical_fetch_enabled`, PENDING PEND-07).
+- Reports count iCal-blocked nights separately ("taken on other channels"), not as rooms out of service.
+
+### Not yet
+A real channel-manager/OTA driver (PEND-07/08), pushing availability and rates (interface only), payment details from OTAs (virtual cards etc.).
+
+### Tests
+425 passing (15 new in `tests/Feature/Channels`, including a fake connected driver).

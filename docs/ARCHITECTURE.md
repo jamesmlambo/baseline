@@ -79,3 +79,8 @@ Record every compatibility or design decision here (MASTER_PROMPT §0).
 | 2026-11-21 | `reports:daily` runs every minute and is idempotent instead of one 17:00 cron entry | A missed run (deploy, outage) catches up automatically and the report time stays a setting. |
 | 2026-11-21 | Web push behind `PushNotifier` with a log driver; log deliveries recorded as "skipped" | No live integration or new package without approval, and the delivery log never claims a push was sent. |
 | 2026-11-21 | Campaign attribution = first-touch utm values or referrer host, kept in the session | REP-06 tracking without third-party scripts, cookies or personal data. |
+| 2026-11-21 | PEND-08 interim: custom Laravel behind a `ChannelManager` interface (null driver) | Keeps both options open (channel manager or hybrid PMS); the exception queue and import rules are the same either way. |
+| 2026-11-21 | OTA reservations go through `PlaceBooking` and get a physical room at import, or go to the exception queue | DEC-02: one booking engine, database-enforced inventory, never an overbooking. |
+| 2026-11-21 | Date/room changes from a channel are not applied automatically | Moving a stay can collide with other bookings; a person decides, with an urgent alert. |
+| 2026-11-21 | iCal imports become room blocks with reason "channel"; clashes go to the exception queue | Reuses inventory protection; reports can keep them apart from out-of-service rooms. |
+| 2026-11-21 | iCal fetching off by default; manual upload/paste instead | Fetching is an outside connection, so it waits for approval (PEND-07). |

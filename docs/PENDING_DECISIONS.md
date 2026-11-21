@@ -21,5 +21,6 @@ Seeded from `FINAL_SPECIFICATION.md` §3.2. Items with a setting show up in **Ad
 | PEND-11 | Retention periods | — | Nothing deleted automatically. |
 | PEND-12 | Escalation timers | `escalation.backup_minutes` (10), `escalation.owner_minutes` (30) | Recommended defaults. |
 | PEND-15 | Inspection scoring scale and pass mark | `inspections.scale_max` (5), `inspections.pass_mark` (4) | Development defaults: every checklist item scored 0–5; below 4 fails and creates rework. |
+| PEND-07b | Fetch channel calendars automatically | `channels.ical_fetch_enabled` (no) | Calendars are uploaded or pasted by staff until the server may download them. |
 | PEND-13 | Non-functional targets | — | FINAL_SPECIFICATION §20 values used as design targets. |
 | PEND-14 | Optional extras | `features.indemnity`, `features.vouchers`, `features.packages`, `features.event_hire` (all "no") | Off by default. Only the indemnity acknowledgement is built; its wording needs legal review. |

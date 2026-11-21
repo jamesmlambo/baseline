@@ -33,7 +33,7 @@
             <div class="{{ $card }}"><p class="{{ $label }}">Room revenue</p><p class="{{ $value }}">{{ $rand($rooms['room_revenue_cents'] ?? 0) }}</p></div>
             <div class="{{ $card }}"><p class="{{ $label }}">ADR</p><p class="{{ $value }}">{{ $rand($rooms['adr_cents'] ?? null) }}</p></div>
             <div class="{{ $card }}"><p class="{{ $label }}">RevPAR</p><p class="{{ $value }}">{{ $rand($rooms['revpar_cents'] ?? null) }}</p></div>
-            <div class="{{ $card }}"><p class="{{ $label }}">Nights blocked</p><p class="{{ $value }}">{{ $rooms['nights_blocked'] ?? 0 }}</p></div>
+            <div class="{{ $card }}"><p class="{{ $label }}">Nights blocked</p><p class="{{ $value }}">{{ $rooms['nights_blocked'] ?? 0 }}</p><p class="text-xs text-gray-500">{{ $rooms['nights_other_channels'] ?? 0 }} taken on other channels (iCal)</p></div>
         </div>
         <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">
             Stays in this period —
@@ -84,7 +84,7 @@
                 <p class="text-xs text-gray-500">{{ $ops['active_employees'] ?? 0 }} active employees</p>
             </div>
             <div class="{{ $card }}"><p class="{{ $label }}">Exceptions</p>
-                <p class="mt-1 text-sm">Payments {{ $ops['exceptions']['payments_needing_attention'] ?? 0 }} · Messages failed {{ $ops['exceptions']['messages_failed'] ?? 0 }} · Jobs failed {{ $ops['exceptions']['jobs_failed'] ?? 0 }} · Report deliveries {{ $ops['exceptions']['report_deliveries_failed'] ?? 0 }}</p>
+                <p class="mt-1 text-sm">Payments {{ $ops['exceptions']['payments_needing_attention'] ?? 0 }} · Messages failed {{ $ops['exceptions']['messages_failed'] ?? 0 }} · Jobs failed {{ $ops['exceptions']['jobs_failed'] ?? 0 }} · Report deliveries {{ $ops['exceptions']['report_deliveries_failed'] ?? 0 }} · Channel problems {{ $ops['exceptions']['channel_exceptions_open'] ?? 0 }} · Stale channels {{ $ops['exceptions']['channels_stale'] ?? 0 }}</p>
             </div>
         </div>
     </section>

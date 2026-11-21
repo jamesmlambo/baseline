@@ -118,3 +118,7 @@ Only requirements that have been worked on are listed. Everything else is still 
 | REP-04 | Report archive, optional day close | Tested | Daily reports, `DailyReports::freeze` | `ReportsTest` |
 | REP-05 | Escalation independent of the daily report | Tested | `portal:escalate` schedule | `ReportsTest`, `PortalStayTest` |
 | REP-06 | Conversion, sources, campaigns; no benchmarks | Tested | `CaptureCampaign`, `ReportMetrics::marketing` | `ReportsTest`, `CampaignTrackingTest` |
+| CHN-01 | ChannelManager interface, null driver | Tested | `ChannelManager`, `NullChannelManager`, `ChannelDrivers` | `ChannelsTest` |
+| CHN-02 | Limited iCal import/export, labelled | Tested (automatic fetch off) | `IcalCalendar`, `ChannelSync::importIcal`, `/ical/{token}.ics` | `ChannelsTest` |
+| CHN-03 | OTA room auto-assigned or exception queue + alert | Tested | `ImportChannelReservation`, Channel problems | `ChannelsTest` |
+| CHN-04 | Stale warnings, scheduled sync, no false sync claims | Tested | `ChannelSync`, `Channel::isStale`, `channels:sync` | `ChannelsTest` |

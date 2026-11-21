@@ -69,3 +69,7 @@ Campaign tracking keeps only the utm values and the referring site's host name â
 - Web push uses a log driver until a push provider is approved; those deliveries show as *skipped*, never as sent.
 - **Day close** (optional): the owner or a manager can record the day's money totals once reconciliation is done. It never changes the 17:00 snapshot and cannot be undone.
 - Urgent guest escalations run separately, every minute (REP-05).
+
+## Other channels
+
+Nights blocked because a channel's iCal calendar shows them taken are **not** counted as out of service: they stay in rooms available, are not counted as sold (their price is unknown), and are shown separately as "taken on other channels". Bookings imported through a channel manager are normal bookings and count as sold.

@@ -7,6 +7,7 @@ use App\Actions\Housekeeping\GenerateDeepCleans;
 use App\Actions\Housekeeping\RunMaintenanceSchedules;
 use App\Actions\Messaging\RunMessageAutomations;
 use App\Actions\Portal\EscalateGuestRequests;
+use App\Services\Channels\ChannelSync;
 use App\Services\Reports\DailyReports;
 use App\Services\Staff\Attendance\AttendanceCalculator;
 use Carbon\CarbonImmutable;
@@ -61,6 +62,16 @@ Artisan::command('attendance:derive {--date= : Work date (YYYY-MM-DD); default y
         $this->line($date->toDateString().': '.$calculator->deriveDate($date).' day(s) updated');
     }
 })->purpose('Work out attendance from rosters and punches (ATT-03)');
+
+Artisan::command('channels:sync', function (ChannelSync $sync): void {
+    $this->info("Checked {$sync->syncAll()} enabled channel(s). See Channels for each run's result.");
+})->purpose('Sync enabled channels and record each attempt (CHN-01/04)');
+
+// Scheduled reconciliation (CHN-04). With no channel manager connected each run is logged as "not connected".
+Schedule::command('channels:sync')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping()
+    ->onOneServer();
 
 Artisan::command('reports:daily', function (DailyReports $reports): void {
     $report = $reports->run();
