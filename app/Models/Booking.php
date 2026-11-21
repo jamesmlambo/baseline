@@ -103,6 +103,14 @@ class Booking extends Model
     }
 
     /**
+     * @return HasMany<Message, $this>
+     */
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
+    }
+
+    /**
      * @return HasMany<FrontDeskLog, $this>
      */
     public function frontDeskLogs(): HasMany

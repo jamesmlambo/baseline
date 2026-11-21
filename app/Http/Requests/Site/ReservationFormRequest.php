@@ -36,6 +36,7 @@ class ReservationFormRequest extends FormRequest
             'payment_method' => ['required', Rule::in(array_map(fn (PaymentMethod $method): string => $method->value, PaymentMethod::onlineOrder()))],
             'accept_terms' => ['accepted'],
             'marketing_consent' => ['nullable', 'boolean'],
+            'price_list' => ['nullable', 'string', 'size:48', 'alpha_num'],
             'website' => ['prohibited'],
         ];
     }

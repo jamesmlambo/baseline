@@ -5,8 +5,8 @@ No outside service is live. Every integration sits behind an interface with a fa
 | Integration | Interface | Driver now | Status | Spec |
 |---|---|---|---|---|
 | Payment gateway (Ozow / PayFast / Yoco candidates) | `PaymentGateway` | **fake** (`/dev/fake-gateway`, HMAC-signed webhooks, refuses production) | Interface, webhook pipeline and refunds built (M4). Real adapter waits for provider choice. | PAY-05, PAY-06 |
-| SMS / OTP | `SmsProvider` | log | Not built (M6) | MSG-01, GST-02 |
-| WhatsApp | `WhatsAppProvider` | log | Not built (M6) | MSG-01, WA-06 |
+| SMS / OTP | `MessageProvider` (SMS) | **log** (`SMS_DRIVER`) | Messaging, templates, retries, spend cap built (M6). Real provider waits for PEND-07. | MSG-01, GST-02 |
+| WhatsApp | `MessageProvider` (WhatsApp) | **log** (`WHATSAPP_DRIVER`) + click-to-chat links for staff | As SMS. A real WhatsApp Business provider will also need template approval. | MSG-01, WA-06 |
 | Email | Laravel mail | `log` mailer | Active locally (log only) | MSG-01 |
 | Channel manager (Booking.com, LekkeSlaap) | `ChannelManager` | null | Not built (M12). Architecture pending (PEND-08). | CHN-01–04 |
 | Hikvision DS-K1T342MFWX-E1 | `AttendanceSource` | CSV / manual | Not built (M9). Needs a firmware test on the real device. | ATT-01, ATT-06 |

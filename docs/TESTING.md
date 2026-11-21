@@ -26,5 +26,6 @@ npm run build
 | 2026-11-20 | M1 | 31 | All passed |
 | 2026-11-21 | M2 | 81 | All passed (incl. 2 two-connection concurrency tests) |
 | 2026-11-21 | M3 | 144 | All passed. Manual check of homepage and availability page at desktop and 375 px. |
-| 2026-11-22 | M4 | 186 | All passed. Manual end-to-end booking + fake Instant EFT payment in the browser. |
-| 2026-11-23 | M5 | 215 | All passed. Admin reception screens covered by Livewire tests; not yet clicked through by a person (needs 2FA sign-in). |
+| 2026-11-21 | M4 | 186 | All passed. Manual end-to-end booking + fake Instant EFT payment in the browser. |
+| 2026-11-21 | M5 | 215 | All passed. Admin reception screens covered by Livewire tests; not yet clicked through by a person (needs 2FA sign-in). |
+| 2026-11-21 | M6 | 244 | All passed. Memory limit for tests raised to 512 MB. WhatsApp price-list page checked in the browser. |

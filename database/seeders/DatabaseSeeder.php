@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             SettingSeeder::class,
             WebsiteContentSeeder::class,
+            MessageTemplateSeeder::class,
         ]);
 
         if (app()->environment('local')) {

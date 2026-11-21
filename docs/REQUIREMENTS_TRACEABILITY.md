@@ -66,5 +66,14 @@ Only requirements that have been worked on are listed. Everything else is still 
 | REC-05 | Key, items, complaints log | Tested | `FrontDeskLog`, front-desk log tab | `ReceptionTest`, `ReceptionScreensTest` |
 | REC-06/07 | Document QR scanner, opaque revocable codes | Tested | `ResolveReceptionCode`, Scan document page, PDF QR | `ReceptionTest`, `ReceptionScreensTest` |
 | OFF-01..03 | Offline read-only contingency | Implemented as printed sheet (OFF-03) | Arrivals sheet page | `ReceptionScreensTest` |
+| MSG-01 | Provider interfaces, log drivers | Tested | `MessageProvider`, `LogProvider` | `MessengerTest` |
+| MSG-02 | Templates, versions, idempotency | Tested | `MessageTemplate`, `Messenger` | `MessengerTest`, `PriceListTest` |
+| MSG-03 | Automations | Tested (portal link M7, staff/owner notices M8/M11) | `BookingMessages`, `RunMessageAutomations` | `AutomationsTest`, `PriceListTest` |
+| MSG-04 | Consent and opt-outs | Tested (inbound STOP needs a provider) | `Messenger::decide`, guest opt-outs | `MessengerTest` |
+| MSG-05 | Status, retries, resend | Tested | `SendMessage` job, Resend action | `MessengerTest` |
+| MSG-06 | Monthly cap, 80% alert, critical bypass | Tested | `SpendGuard` | `MessengerTest` |
+| WA-01..03 | Secure expiring price lists, live prices, no hold | Tested | `CreatePriceList`, `/p/{token}` | `PriceListTest` |
+| WA-06 | Document links by WhatsApp, PDFs by email | Tested | Booking messages + mails | `AutomationsTest` |
+| CHK-03 | Farewell once at checkout | Tested (turnover task M8) | `CheckOut` | `AutomationsTest` |
 | CHK-01/02 | Checkout balance gate, owner override | Tested (portal checkout + turnover in M7/M8) | `CheckOut` | `ReceptionTest` |
 | SEC-08 | Upload checks, EXIF stripped | Tested (MIME + size + EXIF; antivirus interface pending) | `StripImageMetadata` | `RedirectAndMediaTest` |

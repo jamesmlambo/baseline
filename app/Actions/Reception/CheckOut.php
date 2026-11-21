@@ -10,16 +10,20 @@ use App\Exceptions\OutstandingBalanceException;
 use App\Models\Booking;
 use App\Models\User;
 use App\Services\Bookings\BookingStateMachine;
+use App\Services\Messaging\BookingMessages;
 use Illuminate\Auth\Access\AuthorizationException;
 use InvalidArgumentException;
 
 /**
  * Checks a guest out at reception (CHK-01/02). A zero balance is the default gate; the owner may
- * override with a reason (PEND-06). Room turnover tasks (M8) and the farewell message (M6) hook in later.
+ * override with a reason (PEND-06). Sends the farewell message (M6); room turnover tasks hook in with M8.
  */
 class CheckOut
 {
-    public function __construct(private readonly BookingStateMachine $stateMachine) {}
+    public function __construct(
+        private readonly BookingStateMachine $stateMachine,
+        private readonly BookingMessages $messages,
+    ) {}
 
     /**
      * @return array{booking: Booking, keys_outstanding: int}
@@ -51,6 +55,9 @@ class CheckOut
 
         $this->stateMachine->transition($booking, BookingStatus::CheckedOut, $reason, $by);
         $booking->forceFill(['checked_out_at' => now(), 'checked_out_by' => $by->id])->save();
+
+        // CHK-03: thank-you / safe-travels, sent once (idempotency key) even if checkout is retried.
+        $this->messages->farewell($booking);
 
         return ['booking' => $booking->refresh(), 'keys_outstanding' => self::keysOutstanding($booking)];
     }

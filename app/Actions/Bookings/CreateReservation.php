@@ -15,6 +15,7 @@ use App\Models\Extra;
 use App\Models\Guest;
 use App\Services\Finance\DocumentIssuer;
 use App\Services\Finance\FinanceSettings;
+use App\Services\Messaging\BookingMessages;
 use App\Support\Money;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +31,7 @@ class CreateReservation
         private readonly PlaceBooking $placeBooking,
         private readonly DocumentIssuer $documents,
         private readonly FinanceSettings $finance,
+        private readonly BookingMessages $messages,
     ) {}
 
     /**
@@ -66,8 +68,14 @@ class CreateReservation
             ])->save();
 
             $this->documents->invoiceForBooking($booking, $request->createdBy);
+            $booking->refresh()->load(['activeBookingRooms.room', 'extras', 'guest']);
 
-            return $booking->refresh()->load(['activeBookingRooms.room', 'extras', 'guest']);
+            // WA-04 / MSG-03: tell the guest how to pay, once the booking is safely saved.
+            if ($booking->status === BookingStatus::Hold) {
+                DB::afterCommit(fn () => $this->messages->bookingReceived($booking));
+            }
+
+            return $booking;
         });
     }
 

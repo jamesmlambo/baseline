@@ -28,21 +28,26 @@ Record every compatibility or design decision here (MASTER_PROMPT §0).
 | 2026-11-21 | Sitemap and redirects built in-house, not with `spatie/laravel-sitemap` | A few dozen URLs and one table; a package would add more than it saves. |
 | 2026-11-21 | `/book` saves an enquiry, not a booking, until M4 | The online booking flow needs payment rules (M4). An enquiry never claims inventory, so there's no risk of phantom holds. |
 | 2026-11-21 | Catch-all `/{slug}` for CMS pages excludes `admin`, `staff`, `stay`, `livewire`, `storage`, `up` | Stops CMS slugs shadowing app routes. Page slugs are also validated against reserved words. |
-| 2026-11-22 | Separate tables for quotations, invoices, receipts, credit notes; shared polymorphic `document_lines` | Spec requires separate entities (PAY-01) without duplicating line logic. |
-| 2026-11-22 | Document numbers from a locked `document_sequences` row inside the issuing transaction | Gap-free, race-free sequential numbers (PAY-02). |
-| 2026-11-22 | Immutability enforced in model events (`IsIssuedDocument`) | Any code path that tries to edit an issued document fails loudly (PAY-03). |
-| 2026-11-22 | Payment status derived from the payments ledger (`PaymentLedger::sync`), never typed in | One source of truth; proof of EFT can never become "paid" (PAY-07). |
-| 2026-11-22 | Webhooks: event row with unique (gateway, event_id) in its own savepoint | Idempotency without poisoning the outer transaction (PAY-06). |
-| 2026-11-22 | Dual refund approval enforced in code **and** a DB CHECK (`approved_by <> requested_by`) | DEC-06 cannot be bypassed even by a bug. |
-| 2026-11-22 | Fake payment gateway + `/dev/fake-gateway` page, not registered in production | Exercise the full flow, signatures included, with no real money until a provider is chosen (PEND-07). |
-| 2026-11-22 | `Expired → Confirmed` allowed only via `ReinstateBooking`, guarded by "rooms must be re-claimed" | Implements the PEND-02 interim rule without letting a booking hold nothing. |
-| 2026-11-22 | Guest email/phone encrypted with HMAC lookup hashes | SEC-07 and BOOK-06 together. |
-| 2026-11-22 | PDFs use built-in Helvetica | DejaVu embedding made each PDF ~880 KB; Helvetica gives ~2 KB and covers the characters used. |
-| 2026-11-22 | Reception bookings always start as a hold with a staff-chosen expiry | No uncontrolled indefinite holds while hold policy is pending (PEND-01). |
-| 2026-11-23 | Booking balance summed over all non-voided invoices (`Booking::balanceDue`) | Extensions and added charges are billed on supplementary invoices, because issued invoices are immutable. |
-| 2026-11-23 | Document QR = `/admin/scan?code=<32 random chars>`, revocable per booking | Opaque, no personal data (REC-07); only opens inside an authenticated admin session; every scan audited. |
-| 2026-11-23 | Camera scanning with `jsqr` in the browser, plus USB-scanner/typed input | `BarcodeDetector` isn't available in Chrome on Windows; jsQR works everywhere and keeps images on the device. |
-| 2026-11-23 | Offline contingency = printable arrivals sheet, not a browser cache | Shared, unmanaged reception devices can't keep cached guest data secure; OFF-03 allows the printed fallback. |
-| 2026-11-23 | Room calendar rendered server-side from the room-night ledger (no FullCalendar package) | Shows exactly what the booking engine holds; fewer dependencies. |
-| 2026-11-23 | Guest register required fields are a setting (`register.required_fields`) | The legal requirement is unverified (REC-04, COMPLIANCE_TODO). |
+| 2026-11-21 | Separate tables for quotations, invoices, receipts, credit notes; shared polymorphic `document_lines` | Spec requires separate entities (PAY-01) without duplicating line logic. |
+| 2026-11-21 | Document numbers from a locked `document_sequences` row inside the issuing transaction | Gap-free, race-free sequential numbers (PAY-02). |
+| 2026-11-21 | Immutability enforced in model events (`IsIssuedDocument`) | Any code path that tries to edit an issued document fails loudly (PAY-03). |
+| 2026-11-21 | Payment status derived from the payments ledger (`PaymentLedger::sync`), never typed in | One source of truth; proof of EFT can never become "paid" (PAY-07). |
+| 2026-11-21 | Webhooks: event row with unique (gateway, event_id) in its own savepoint | Idempotency without poisoning the outer transaction (PAY-06). |
+| 2026-11-21 | Dual refund approval enforced in code **and** a DB CHECK (`approved_by <> requested_by`) | DEC-06 cannot be bypassed even by a bug. |
+| 2026-11-21 | Fake payment gateway + `/dev/fake-gateway` page, not registered in production | Exercise the full flow, signatures included, with no real money until a provider is chosen (PEND-07). |
+| 2026-11-21 | `Expired → Confirmed` allowed only via `ReinstateBooking`, guarded by "rooms must be re-claimed" | Implements the PEND-02 interim rule without letting a booking hold nothing. |
+| 2026-11-21 | Guest email/phone encrypted with HMAC lookup hashes | SEC-07 and BOOK-06 together. |
+| 2026-11-21 | PDFs use built-in Helvetica | DejaVu embedding made each PDF ~880 KB; Helvetica gives ~2 KB and covers the characters used. |
+| 2026-11-21 | Reception bookings always start as a hold with a staff-chosen expiry | No uncontrolled indefinite holds while hold policy is pending (PEND-01). |
+| 2026-11-21 | One `Messenger` with an idempotency key per message, every attempt stored (including skips with a reason) | MSG-02/05: no double messages on retries or repeated scheduler runs; staff can see exactly what a guest received and why something wasn't sent. |
+| 2026-11-21 | Spend counted from queued + sent messages' cost; critical templates bypass the cap | MSG-06 hard stop without blocking payment confirmations. |
+| 2026-11-21 | Time-based automations in one idempotent command every 5 minutes | Simpler than per-message schedules; repeats are harmless. |
+| 2026-11-21 | WhatsApp click-to-chat (`wa.me`) for staff-sent price lists | Works today from the lodge's own WhatsApp with no API or provider contract. |
+| 2026-11-21 | Price lists never hold rooms; bookings from them go through the normal flow with source WhatsApp | WA-03: availability re-checked at booking; one booking engine. |
+| 2026-11-21 | Booking balance summed over all non-voided invoices (`Booking::balanceDue`) | Extensions and added charges are billed on supplementary invoices, because issued invoices are immutable. |
+| 2026-11-21 | Document QR = `/admin/scan?code=<32 random chars>`, revocable per booking | Opaque, no personal data (REC-07); only opens inside an authenticated admin session; every scan audited. |
+| 2026-11-21 | Camera scanning with `jsqr` in the browser, plus USB-scanner/typed input | `BarcodeDetector` isn't available in Chrome on Windows; jsQR works everywhere and keeps images on the device. |
+| 2026-11-21 | Offline contingency = printable arrivals sheet, not a browser cache | Shared, unmanaged reception devices can't keep cached guest data secure; OFF-03 allows the printed fallback. |
+| 2026-11-21 | Room calendar rendered server-side from the room-night ledger (no FullCalendar package) | Shows exactly what the booking engine holds; fewer dependencies. |
+| 2026-11-21 | Guest register required fields are a setting (`register.required_fields`) | The legal requirement is unverified (REC-04, COMPLIANCE_TODO). |
 | 2026-11-21 | Concurrency tests use `DatabaseTruncation` and a second connection | `RefreshDatabase` transactions are invisible to other connections, so a true race can't be shown with them. |

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\MessageChannel;
 use Database\Factories\GuestFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -18,7 +19,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * Guest profile reused across bookings (BOOK-06). Email and phone are encrypted at rest and
  * found through keyed lookup hashes of their normalised values (SEC-07).
  */
-#[Fillable(['first_name', 'last_name', 'email', 'phone', 'notes', 'marketing_consent', 'marketing_consent_at'])]
+#[Fillable(['first_name', 'last_name', 'email', 'phone', 'notes', 'marketing_consent', 'marketing_consent_at', 'channel_opt_outs'])]
 #[Hidden(['email_hash', 'phone_hash'])]
 class Guest extends Model
 {
@@ -32,7 +33,16 @@ class Guest extends Model
             'phone' => 'encrypted',
             'marketing_consent' => 'boolean',
             'marketing_consent_at' => 'immutable_datetime',
+            'channel_opt_outs' => 'array',
         ];
+    }
+
+    /**
+     * MSG-04: the guest asked not to be messaged on this channel (SMS or WhatsApp).
+     */
+    public function hasOptedOutOf(MessageChannel $channel): bool
+    {
+        return in_array($channel->value, $this->channel_opt_outs ?? [], true);
     }
 
     protected static function booted(): void

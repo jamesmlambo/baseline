@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Guests;
 
+use App\Enums\MessageChannel;
 use App\Filament\Resources\Bookings\BookingResource;
 use App\Filament\Resources\Guests\Pages\EditGuest;
 use App\Filament\Resources\Guests\Pages\ListGuests;
 use App\Models\Guest;
 use BackedEnum;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -50,6 +52,11 @@ class GuestResource extends Resource
                     Textarea::make('notes')->label('Notes and preferences')->rows(3)->columnSpanFull()
                         ->helperText('Only record what is needed for the stay. Guests can ask to see this (POPIA).'),
                     Toggle::make('marketing_consent')->label('Agreed to receive news and specials'),
+                    CheckboxList::make('channel_opt_outs')
+                        ->label('Do not message on')
+                        ->options(MessageChannel::options())
+                        ->helperText('Booking messages are not sent on these channels. Email confirmations still go out.')
+                        ->columns(2),
                 ]),
         ]);
     }

@@ -16,6 +16,7 @@ use App\Mail\BookingReceived;
 use App\Models\AccommodationType;
 use App\Models\Booking;
 use App\Models\Extra;
+use App\Models\PriceList;
 use App\Services\Availability\AvailabilityService;
 use App\Services\Finance\FinanceSettings;
 use App\Services\Pricing\RateCalculator;
@@ -63,7 +64,22 @@ class BookingController extends Controller
             'holdMinutes' => $finance->onlineHoldMinutes(),
             'bankDetailsAvailable' => $finance->bankDetails() !== null,
             'isAvailable' => $availability->availableRoomsQuery($type, $stay)->exists(),
+            'priceListToken' => self::usablePriceList($request->query('price_list'))?->token,
         ]);
+    }
+
+    /**
+     * A WhatsApp price list the guest came from, if it is still valid (WA-01/02).
+     */
+    public static function usablePriceList(mixed $token): ?PriceList
+    {
+        if (! is_string($token) || preg_match('/^[A-Za-z0-9]{48}$/', $token) !== 1) {
+            return null;
+        }
+
+        $priceList = PriceList::query()->where('token', $token)->first();
+
+        return $priceList?->isUsable() ? $priceList : null;
     }
 
     public function store(ReservationFormRequest $request, CreateReservation $create, FinanceSettings $finance): RedirectResponse
@@ -76,6 +92,8 @@ class BookingController extends Controller
             return back()->withInput()->withErrors(['payment_method' => 'EFT is not available yet. Please choose another way to pay, or contact us.']);
         }
 
+        $priceList = self::usablePriceList($request->input('price_list'));
+
         try {
             $booking = $create->handle(new ReservationRequest(
                 type: $type,
@@ -86,7 +104,7 @@ class BookingController extends Controller
                 lastName: $request->string('last_name')->trim()->value(),
                 email: $request->string('email')->value(),
                 phone: $request->string('phone')->value(),
-                source: BookingSource::Website,
+                source: $priceList !== null ? BookingSource::WhatsApp : BookingSource::Website,
                 status: BookingStatus::Hold,
                 preferredPaymentMethod: $method,
                 extraQuantities: $request->extraQuantities(),
@@ -101,6 +119,8 @@ class BookingController extends Controller
         } catch (InvalidArgumentException $exception) {
             return back()->withInput()->withErrors(['adults' => $exception->getMessage()]);
         }
+
+        $priceList?->forceFill(['booking_id' => $booking->id])->save();
 
         if ($booking->lead_guest_email) {
             try {

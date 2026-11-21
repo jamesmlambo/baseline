@@ -13,6 +13,7 @@ use App\Http\Controllers\Site\FaqController;
 use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Site\NewsController;
 use App\Http\Controllers\Site\PageController;
+use App\Http\Controllers\Site\PriceListController;
 use App\Http\Controllers\Site\RedirectController;
 use App\Http\Controllers\Site\RoomController;
 use App\Http\Controllers\Site\SitemapController;
@@ -42,6 +43,11 @@ Route::prefix('/booking/{token}')->where(['token' => '[A-Za-z0-9]{48}'])->group(
     Route::post('/eft', [BookingPaymentController::class, 'eftNotice'])->middleware('throttle:enquiries')->name('booking.eft');
     Route::get('/return', [BookingPaymentController::class, 'return'])->name('booking.return');
 });
+
+// WhatsApp price lists (WA-01): short path, unguessable token.
+Route::get('/p/{token}', [PriceListController::class, 'show'])
+    ->where('token', '[A-Za-z0-9]{48}')
+    ->name('price-list.show');
 
 Route::get('/documents/{type}/{token}', DocumentController::class)
     ->where(['type' => 'invoice|receipt', 'token' => '[A-Za-z0-9]{48}'])

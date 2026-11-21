@@ -10,6 +10,9 @@
         <input type="hidden" name="departure" value="{{ $stay->departureString() }}">
         <input type="hidden" name="adults" value="{{ $adults }}">
         <input type="hidden" name="children" value="{{ $children }}">
+        @if ($priceListToken)
+            <input type="hidden" name="price_list" value="{{ $priceListToken }}">
+        @endif
 
         <div class="space-y-10">
             @unless ($isAvailable)

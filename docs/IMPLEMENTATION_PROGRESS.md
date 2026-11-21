@@ -9,7 +9,8 @@ New session? Read `docs/MASTER_PROMPT.md`, `docs/FINAL_SPECIFICATION.md` and thi
 - **Milestone 3 — Public website:** done (all 20 pages, CMS, SEO, redirects, enquiries).
 - **Milestone 4 — Reservations & finance:** done (online booking + fake payment provider, guest profiles, extras, quotations/invoices/receipts/credit notes, EFT verification, dual-approval refunds, admin screens).
 - **Milestone 5 — Reception:** done (check-in/out, guest register, extend stay, charges, front-desk log, document QR + scanner, room calendar, dashboard, offline arrivals sheet).
-- **Next:** **Milestone 6 — Messaging & WhatsApp bookings** (SMS/WhatsApp/email interfaces with log drivers, templates, consent, spend cap, live WhatsApp price lists; FINAL_SPECIFICATION §10, §14).
+- **Milestone 6 — Messaging & WhatsApp bookings:** done (SMS/WhatsApp messaging with log drivers, templates, automations, consent, spend cap, WhatsApp price lists).
+- **Next:** **Milestone 7 — Guest portal** (room QR + SMS one-time code, guest requests and inbox, meal/towel requests, checkout from the portal, reviews; FINAL_SPECIFICATION §13).
 
 ## Environment
 
@@ -100,7 +101,7 @@ Done: PostgreSQL, Laravel Boost, Filament 5 panels `/admin` and `/staff` with TO
 - Room readiness status (Dirty/Ready…): M8 housekeeping.
 - Booking list and calendar UI: M4/M5.
 
-## Milestone 4 — Reservations & finance (21–22 Nov 2026)
+## Milestone 4 — Reservations & finance (21 Nov 2026)
 
 ### Online booking (website)
 `/check-availability` → **Book this room** → `/book` (extras, guest details, payment method with Instant EFT first, terms, optional marketing consent) → held booking + invoice + "payment needed" email → `/booking/{token}` (pay or EFT instructions) → payment provider → confirmation page and email with receipt.
@@ -143,7 +144,7 @@ Full flow on the local server: booking BL-U5KXFA (Demo Standard Room + breakfast
 ### Tests
 186 passing.
 
-## Milestone 5 — Reception (23 Nov 2026)
+## Milestone 5 — Reception (21 Nov 2026)
 
 ### Built
 - **Check in** (booking screen, green button on/after the arrival day, confirmed bookings only): guest register form (full name, ID type/number, nationality, address, vehicle, guests). Required fields come from the setting `register.required_fields` (default: full name only, **VERIFY** with a legal adviser). ID number and address are encrypted; the screen shows the ID masked (`•••••9087`). Optional key handover is logged. A document QR code is created.
@@ -166,3 +167,46 @@ Full flow on the local server: booking BL-U5KXFA (Demo Standard Room + breakfast
 
 ### Tests
 215 passing (29 new for reception).
+
+## Milestone 6 — Messaging & WhatsApp bookings (21 Nov 2026)
+
+### Messaging (MSG-01..06)
+- `MessageProvider` interface per channel (SMS, WhatsApp) with a **log driver** (`config/messaging.php`): messages are stored and written to the log, **never sent**, until providers are chosen (PEND-07).
+- `Messenger` is the only way to send. Every attempt is a row in `messages` (recipient encrypted), including ones deliberately not sent, with the reason: missing value, guest opted out of the channel, no marketing consent, monthly cap reached, template switched off.
+- **Idempotency:** every automated message has a key like `payment_confirmed:42`; the same key never sends twice.
+- **Retries:** `SendMessage` job, 3 tries (1 min, 5 min), then **Failed** with the error. Staff can **Resend**, on the same or the other channel.
+- **Spend cap (MSG-06):** per channel per month (`messaging.monthly_cap_*_cents`, empty = no cap). Owner emailed once a month at 80%. At 100% only **critical** messages (payment confirmation) go out.
+- **Templates:** 9 messages × WhatsApp + SMS (`MessageTemplateSeeder`, all environments, never overwrites edits). Editing the wording bumps the version; unknown placeholders are rejected. Cost estimates start at R0.
+- **Channel:** `messaging.preferred_channel` (WhatsApp, dev default). Guests can be opted out per channel on their profile.
+
+### Automations (MSG-03)
+| Message | When |
+|---|---|
+| Booking received / how to pay | When a held booking is created (website or front desk) |
+| Unpaid hold reminder | Hold ends within 10 minutes (bookings at least 10 minutes old) |
+| Payment confirmed | Booking confirmed (with the existing email + receipt) |
+| Pre-arrival information | 2 days before arrival, from 08:00 |
+| Departure day | Morning of departure, from 08:00 |
+| Thank you / safe travels | At check-out |
+| Feedback request | Day after check-out, **only if** `messaging.feedback_request_enabled` = yes (off) |
+| Price-list follow-up | Unused price list after `price_lists.follow_up_hours` (4) |
+Scheduled: `messages:run-automations` every 5 minutes (safe to repeat).
+Not yet: arrival-day guest-portal link (M7), staff task notices (M8), owner escalation (M11).
+
+### WhatsApp price lists (WA-01..06)
+- **Bookings › WhatsApp price lists › New:** dates, guests, optional name and WhatsApp number. Creates a secure link `/p/{token}` valid for `price_lists.valid_hours` (24, dev default) and sends it through the messaging system. **Send from WhatsApp** opens WhatsApp (click-to-chat) with the text ready, so reception can send it from the lodge's own WhatsApp today, with no API.
+- Guest page: live availability and prices for those dates, **Choose this room** → normal booking flow, recorded as source **WhatsApp** and linked to the price list. Opening the link never holds a room; expired or cancelled links show a friendly 410 page.
+
+### Admin
+Front desk › **Messages** (log, failures badge, monthly spend shown, Resend), booking **Messages** tab, Settings › **Message wording**, Bookings › **WhatsApp price lists**, guest profile **Do not message on**.
+
+### Other
+- `phpunit.xml` memory limit raised to 512 MB (suite outgrew 128 MB).
+- `.claude/launch.json` starts the site on port 8001 from the Claude app.
+
+### Not yet
+- Real SMS/WhatsApp providers, delivery receipts from providers, inbound "STOP" handling (need a provider).
+- "Reception notified" on payment (WA-05) is via the dashboard/Payments badge; push/in-app alerts come with M11.
+
+### Tests
+244 passing (29 new). Price-list page checked in the browser.
