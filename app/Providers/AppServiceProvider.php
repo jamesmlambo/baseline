@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Models\Amenity;
+use App\Models\Asset;
+use App\Models\CleaningEstimate;
 use App\Models\Faq;
 use App\Models\GuestMessage;
 use App\Models\GuestRequest;
+use App\Models\MaintenanceSchedule;
+use App\Models\TaskChecklistTemplate;
 use App\Models\User;
 use App\Policies\FrontDeskRecordPolicy;
+use App\Policies\OperationsRecordPolicy;
 use App\Policies\WebsiteContentPolicy;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -54,6 +59,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Amenity::class, WebsiteContentPolicy::class);
         Gate::policy(GuestRequest::class, FrontDeskRecordPolicy::class);
         Gate::policy(GuestMessage::class, FrontDeskRecordPolicy::class);
+        Gate::policy(Asset::class, OperationsRecordPolicy::class);
+        Gate::policy(MaintenanceSchedule::class, OperationsRecordPolicy::class);
+        Gate::policy(TaskChecklistTemplate::class, OperationsRecordPolicy::class);
+        Gate::policy(CleaningEstimate::class, OperationsRecordPolicy::class);
 
         Event::listen(RoleAttachedEvent::class, function (RoleAttachedEvent $event): void {
             $this->logRoleChange($event->model, $event->rolesOrIds, 'role_attached');

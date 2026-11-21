@@ -56,6 +56,8 @@ class SettingSeeder extends Seeder
             $this->setting('messaging', 'messaging.monthly_cap_whatsapp_cents', 'Monthly WhatsApp spend cap (cents)', null, 'integer', 'PEND-07', 'Set once a WhatsApp provider is chosen.'),
             $this->setting('escalation', 'escalation.backup_minutes', 'Escalate unanswered guest request to backup after (minutes)', 10, 'integer', 'PEND-12', 'Recommended default.'),
             $this->setting('escalation', 'escalation.owner_minutes', 'Escalate unanswered guest request to owner after (minutes)', 30, 'integer', 'PEND-12', 'Recommended default.'),
+            $this->setting('housekeeping', 'inspections.scale_max', 'Inspection score scale: highest score', 5, 'integer', 'PEND-15', 'Development default. Each checklist item is scored from 0 to this number.'),
+            $this->setting('housekeeping', 'inspections.pass_mark', 'Inspection pass mark (each item)', 4, 'integer', 'PEND-15', 'Development default. Any item scored below this fails the inspection and creates rework.'),
             $this->setting('reports', 'reports.daily_time', 'Daily owner report time', '17:00', 'time'),
             $this->setting('portal', 'portal.welcome', 'Guest portal: welcome message', null, 'text', 'PEND-04', 'Shown at the top of the guest portal.'),
             $this->setting('portal', 'portal.wifi_name', 'Guest portal: Wi-Fi network name', null, 'string', 'PEND-04'),

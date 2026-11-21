@@ -20,5 +20,6 @@ Seeded from `FINAL_SPECIFICATION.md` §3.2. Items with a setting show up in **Ad
 | PEND-10 | Website languages | — | English only. |
 | PEND-11 | Retention periods | — | Nothing deleted automatically. |
 | PEND-12 | Escalation timers | `escalation.backup_minutes` (10), `escalation.owner_minutes` (30) | Recommended defaults. |
+| PEND-15 | Inspection scoring scale and pass mark | `inspections.scale_max` (5), `inspections.pass_mark` (4) | Development defaults: every checklist item scored 0–5; below 4 fails and creates rework. |
 | PEND-13 | Non-functional targets | — | FINAL_SPECIFICATION §20 values used as design targets. |
 | PEND-14 | Optional extras | — | Off by default. |

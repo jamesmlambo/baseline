@@ -74,8 +74,8 @@ Only requirements that have been worked on are listed. Everything else is still 
 | MSG-06 | Monthly cap, 80% alert, critical bypass | Tested | `SpendGuard` | `MessengerTest` |
 | WA-01..03 | Secure expiring price lists, live prices, no hold | Tested | `CreatePriceList`, `/p/{token}` | `PriceListTest` |
 | WA-06 | Document links by WhatsApp, PDFs by email | Tested | Booking messages + mails | `AutomationsTest` |
-| CHK-03 | Farewell once at checkout | Tested (turnover task M8) | `CheckOut` | `AutomationsTest` |
-| CHK-01/02 | Checkout balance gate, owner override, portal checkout | Tested (turnover in M8) | `CheckOut::byGuest`, portal Bill page | `ReceptionTest`, `PortalStayTest` |
+| CHK-03 | Farewell once, room Dirty, one checkout clean | Tested | `CheckOut`, `CreateTurnoverTasks` | `AutomationsTest`, `HousekeepingTest` |
+| CHK-01/02 | Checkout balance gate, owner override, portal checkout | Tested | `CheckOut::byGuest`, portal Bill page | `ReceptionTest`, `PortalStayTest` |
 | SEC-08 | Upload checks, EXIF stripped | Tested (MIME + size + EXIF; antivirus interface pending) | `StripImageMetadata` | `RedirectAndMediaTest` |
 | GST-01 | Room QR identifies the room, replaceable | Tested | `Room::portalUrl`, `PortalAccess::rotateRoomQr`, Rooms › Room QR | `PortalAccessTest`, `PortalStaffScreensTest` |
 | GST-02 | SMS code, anti-enumeration, expiry, attempts, send limits | Tested | `PortalAccess::requestCode/verifyCode`, rate limiters | `PortalAccessTest` |
@@ -85,3 +85,14 @@ Only requirements that have been worked on are listed. Everything else is still 
 | GST-06 | Session scoped to stay; ends on checkout, move, QR change, revoke | Tested | `PortalAccess::currentStay`, `EnsurePortalStay` | `PortalAccessTest` |
 | GST-07 | Requests, room service, messages, bill, reviews | Tested | `GuestRequests`, `ModerateReview`, portal pages | `PortalStayTest`, `PortalStaffScreensTest` |
 | GST-08 | Reception inbox, alert, escalation | Tested | Guest requests/messages resources, `GuestPortalAlert`, `EscalateGuestRequests` | `PortalStayTest`, `PortalStaffScreensTest` |
+| CHK-04 | Turnover idempotent on retry | Tested | `CreateTurnoverTasks`, `TaskManager::createOnce` | `HousekeepingTest` |
+| HK-01 | Task types | Implemented | `TaskType` | `HousekeepingTest` |
+| HK-02 | Assignee, checklist, evidence, photos | Tested | `TaskManager::complete`, My tasks | `HousekeepingTest`, `HousekeepingScreensTest` |
+| HK-03 | Reception assigns housekeeping; owner/manager assign maintenance | Tested | `TaskPolicy::assignType` | `HousekeepingTest`, `HousekeepingScreensTest` |
+| HK-04 | Monday deep clean with spec checklist | Tested | `GenerateDeepCleans`, `TaskChecklistSeeder` | `HousekeepingTest` |
+| HK-05 | Scored inspections, rework, re-inspection | Tested (scale PENDING PEND-15) | `Inspections::record` | `HousekeepingTest`, `HousekeepingScreensTest` |
+| HK-06 | Ready only after clean + inspection, owner override | Tested | `Inspections`, Room status board | `HousekeepingTest`, `HousekeepingScreensTest` |
+| HK-07 | Cleaning effort per room type | Implemented (used by rosters in M9) | `CleaningEstimate` | — |
+| HK-08 | Faults, preventive schedules, equipment history, warranties, costs | Tested | `TaskManager::reportFault`, `RunMaintenanceSchedules`, Equipment | `HousekeepingTest`, `HousekeepingScreensTest` |
+| HK-09 | Stock ledger, low-stock alerts | Tested | `StockLedger` | `HousekeepingTest`, `HousekeepingScreensTest` |
+| HK-10 | Restricted lost-property log | Tested | `LostPropertyItemPolicy` | `HousekeepingTest` |

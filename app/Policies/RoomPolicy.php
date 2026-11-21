@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\StaffRole;
 use App\Models\Room;
 use App\Models\User;
 use App\Policies\Concerns\ChecksStaffRoles;
@@ -43,5 +44,13 @@ class RoomPolicy
     public function deleteAny(User $user): bool
     {
         return false;
+    }
+
+    /**
+     * HK-06 / PEND-06: mark a room Ready without a passed inspection. Owner only, with a reason.
+     */
+    public function overrideReadiness(User $user, Room $room): bool
+    {
+        return $this->hasRole($user, StaffRole::Owner);
     }
 }

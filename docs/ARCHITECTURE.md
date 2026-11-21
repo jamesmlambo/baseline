@@ -57,3 +57,9 @@ Record every compatibility or design decision here (MASTER_PROMPT §0).
 | 2026-11-21 | Room service billed when reception marks it done, inside a row lock | No charges for orders that never arrived; double clicks can't bill twice. |
 | 2026-11-21 | Reception alert = Livewire poll (15 s) + Web Audio chime on every admin page | No websockets or push service needed yet (M11 may replace it). |
 | 2026-11-21 | Review publish needs consent in code **and** a DB CHECK | A review can never go public without the guest's permission. |
+| 2026-11-21 | One `tasks` table for housekeeping, grounds and maintenance, with a unique idempotency key for system-created tasks | Checkout, deep-clean and schedule runs can retry safely (CHK-04); one task list for staff. |
+| 2026-11-21 | Room readiness is an explicit `rooms.cleaning_status`, changed only through `TaskManager::setRoomStatus` (audited) | HK-06 needs a clear Ready gate and a trail of who changed it. |
+| 2026-11-21 | Turnover runs as a queued job after the checkout commits | Checkout stays fast and never half-creates turnover; the job is idempotent. |
+| 2026-11-21 | Rework = a child task with only the failed items, for the same worker; its completion opens a new inspection | HK-05 rework and re-inspection with one mechanism and a full history. |
+| 2026-11-21 | Stock is a movement ledger with no editable quantity; rows are immutable | HK-09: counts can always be explained; corrections are visible adjustments. |
+| 2026-11-21 | Check-in warns, but does not block, when the room isn't Ready | Blocking would stop reception when the inspector is unavailable; the owner override exists for the Ready gate itself. |

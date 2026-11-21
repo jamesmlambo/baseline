@@ -26,6 +26,23 @@ trait ChecksStaffRoles
     }
 
     /**
+     * Administrator, Owner, Manager and Receptionist.
+     */
+    protected function isFrontDesk(User $user): bool
+    {
+        return $this->managesInventory($user) || $this->hasRole($user, StaffRole::Receptionist);
+    }
+
+    /**
+     * Anyone who does or organises operational work (not content editors).
+     */
+    protected function isOperationsStaff(User $user): bool
+    {
+        return $this->isFrontDesk($user)
+            || $this->hasRole($user, StaffRole::HousekeepingWorker, StaffRole::MaintenanceWorker, StaffRole::Inspector);
+    }
+
+    /**
      * Reception can see inventory but not change it.
      */
     protected function viewsInventory(User $user): bool

@@ -12,6 +12,7 @@ use App\Actions\Reception\ExtendStay;
 use App\Actions\Reception\ResolveReceptionCode;
 use App\Enums\BookingStatus;
 use App\Enums\FrontDeskLogType;
+use App\Enums\RoomCleaningStatus;
 use App\Filament\Forms\MoneyInput;
 use App\Models\Booking;
 use App\Models\FrontDeskLog;
@@ -53,7 +54,8 @@ final class ReceptionActions
             ->visible(fn (Booking $record): bool => $record->status === BookingStatus::Confirmed && ! $record->arrival_date->isFuture())
             ->authorize(fn (Booking $record): bool => auth()->user()->can('update', $record))
             ->modalHeading('Check in and guest register')
-            ->modalDescription('Which register fields the law requires is still being confirmed. Fields marked * are required by the current setting.')
+            ->modalDescription(fn (Booking $record): string => self::roomReadinessWarning($record)
+                .'Which register fields the law requires is still being confirmed. Fields marked * are required by the current setting.')
             ->fillForm(fn (Booking $record): array => [
                 'full_name' => $record->registerEntry?->full_name ?? $record->lead_guest_name,
                 'number_of_guests' => $record->activeBookingRooms()->get()->sum(fn ($room) => $room->adults + $room->children) ?: null,
@@ -299,6 +301,20 @@ final class ReceptionActions
             ->schema([Textarea::make('reason')->required()->rows(2)->placeholder('e.g. Guest reported a lost phone')])
             ->modalDescription('Signs every phone out of this stay\'s portal. The guest can sign in again with a new code.')
             ->action(fn (Booking $record, array $data) => PaymentActions::run(fn () => app(PortalAccess::class)->endAccess($record, auth()->user(), $data['reason']), 'Portal access ended'));
+    }
+
+    /**
+     * HK-06: tell reception when the guest's room has not passed inspection yet.
+     */
+    private static function roomReadinessWarning(Booking $booking): string
+    {
+        $notReady = $booking->activeBookingRooms()->with('room')->get()
+            ->map(fn ($bookingRoom) => $bookingRoom->room)
+            ->filter(fn (?Room $room): bool => $room !== null && $room->cleaning_status !== RoomCleaningStatus::Ready);
+
+        return $notReady->isEmpty()
+            ? ''
+            : 'Not ready yet: '.$notReady->map(fn (Room $room): string => "{$room->name} ({$room->cleaning_status->label()})")->implode(', ').'. ';
     }
 
     /**

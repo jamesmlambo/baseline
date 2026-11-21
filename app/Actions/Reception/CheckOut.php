@@ -8,6 +8,7 @@ use App\Enums\BookingStatus;
 use App\Enums\FrontDeskLogType;
 use App\Enums\PaymentRecordStatus;
 use App\Exceptions\OutstandingBalanceException;
+use App\Jobs\CreateTurnoverTasks;
 use App\Models\Booking;
 use App\Models\User;
 use App\Services\Bookings\BookingStateMachine;
@@ -17,7 +18,7 @@ use InvalidArgumentException;
 
 /**
  * Checks a guest out at reception (CHK-01/02). A zero balance is the default gate; the owner may
- * override with a reason (PEND-06). Sends the farewell message (M6); room turnover tasks hook in with M8.
+ * override with a reason (PEND-06). Sends the farewell message (M6) and queues room turnover (M8).
  */
 class CheckOut
 {
@@ -93,6 +94,9 @@ class CheckOut
         // CHK-03: thank-you / safe-travels, sent once (idempotency key) even if checkout is retried.
         // Portal access ends automatically: sessions require a checked-in stay (GST-06).
         $this->messages->farewell($booking);
+
+        // CHK-03/04: room to Dirty + one checkout clean per room, as an idempotent job after commit.
+        CreateTurnoverTasks::dispatch($booking->id)->afterCommit();
 
         return ['booking' => $booking->refresh(), 'keys_outstanding' => self::keysOutstanding($booking)];
     }

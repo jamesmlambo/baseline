@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\RoomCleaningStatus;
 use Database\Factories\RoomFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -26,11 +27,18 @@ class Room extends Model
     /** @use HasFactory<RoomFactory> */
     use HasFactory, LogsActivity;
 
+    /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = ['cleaning_status' => 'ready'];
+
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
             'is_demo' => 'boolean',
+            'cleaning_status' => RoomCleaningStatus::class,
+            'cleaning_status_changed_at' => 'datetime',
         ];
     }
 
@@ -65,6 +73,14 @@ class Room extends Model
     public function blocks(): HasMany
     {
         return $this->hasMany(RoomBlock::class);
+    }
+
+    /**
+     * @return HasMany<Task, $this>
+     */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
     }
 
     /**

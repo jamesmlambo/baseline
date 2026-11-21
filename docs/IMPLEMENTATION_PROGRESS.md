@@ -11,7 +11,8 @@ New session? Read `docs/MASTER_PROMPT.md`, `docs/FINAL_SPECIFICATION.md` and thi
 - **Milestone 5 — Reception:** done (check-in/out, guest register, extend stay, charges, front-desk log, document QR + scanner, room calendar, dashboard, offline arrivals sheet).
 - **Milestone 6 — Messaging & WhatsApp bookings:** done (SMS/WhatsApp messaging with log drivers, templates, automations, consent, spend cap, WhatsApp price lists).
 - **Milestone 7 — Guest portal:** done (room QR + SMS code sign-in, requests, room-service menu, reception inbox with chime, escalation, bill and self-checkout, reviews with moderation, extra phones).
-- **Next:** **Milestone 8 — Housekeeping & maintenance** (FINAL_SPECIFICATION §22).
+- **Milestone 8 — Housekeeping & maintenance:** done (tasks, checkout turnover, Monday deep clean, inspections with rework, room readiness, maintenance and equipment, stock ledger, lost property).
+- **Next:** **Milestone 9 — Employees & attendance** (profiles, rosters, staff portal, attendance, Hikvision feasibility, CSV; FINAL_SPECIFICATION §17).
 
 ## Environment
 
@@ -238,3 +239,39 @@ Payment from the portal (pay links come with a real provider), push notification
 
 ### Tests
 289 passing (45 new in `tests/Feature/Portal`). Portal sign-in link, home, menu, requests and bill checked in the browser at phone width.
+
+## Milestone 8 — Housekeeping & maintenance (21 Nov 2026)
+
+### Tasks (HK-01..03)
+- One `tasks` table for all 14 task types in HK-01, with room / equipment / place, assignee, priority, due time, checklist, notes, completion notes, photos, cost and supplier.
+- **Who assigns (HK-03):** reception, managers and the owner create and assign housekeeping (daily clean, light refresh, checkout clean, deep clean); only managers and the owner do gardening and maintenance types. Housekeeping tasks can only go to housekeeping staff (or a manager/owner).
+- **Finishing (HK-02):** only the assigned worker can start or finish. Every checklist item must be ticked, or a note written when there is no checklist. Up to 3 photos (private disk, EXIF stripped).
+- Workers are emailed when a task is given to them. Anyone on the operations team can **Report a fault** (creates a Repairs task and emails managers/owner).
+- Standard checklists per task type (**Settings › Task checklists**). Only the Monday deep-clean list is seeded — it is the one in SPEC v5.3 (HK-04); the others start empty until the lodge supplies them.
+- **Cleaning times** per room type and task (HK-07) are shown on tasks; they will feed rosters in M9. None are seeded (not invented).
+
+### Checkout turnover (CHK-03/04)
+At checkout (reception or portal) a queued job sets each room to **Dirty** and creates one **checkout clean** (High priority if another guest arrives in that room today). The job uses an idempotency key, so re-runs never duplicate the task or set a room back. Locally the queue is `database`: run a queue worker (`php artisan queue:work`, or `composer run dev`) for checkout tasks to appear.
+
+### Inspections and room readiness (HK-05/06)
+- Rooms have a cleaning status: Dirty → Being cleaned → Awaiting inspection → Ready. Every change is in the audit log.
+- Finishing a checkout or deep clean opens an inspection. Inspectors (or a manager/the owner) score each checklist item 0–5; any item below 4 fails (`inspections.scale_max` / `pass_mark`, PENDING PEND-15). Nobody can inspect their own clean.
+- A failure sets the room back to Dirty and creates a **rework** task for the same worker with only the failed items (High priority, emailed). Finishing rework opens a re-inspection.
+- **Owner only** can mark a room Ready without an inspection, with a reason (PEND-06, audited). Check-in shows a warning when the room isn't Ready (it does not block).
+- **Operations › Room status** board.
+
+### Schedules, maintenance and stock
+- **Monday deep clean (HK-04):** `housekeeping:deep-cleans`, Mondays 06:00, one per active room, safe to repeat.
+- **Recurring jobs (HK-08):** `maintenance:run-schedules` daily 06:05 creates the task on the due date and moves the schedule on (catch-up creates one task, not a backlog). **Equipment** register with warranty and job history.
+- **Stock (HK-09):** ledger of movements (received / used / damaged / correction); on-hand is always the sum and can't go below zero. Corrections are manager/owner only, with a reason; movements can't be edited or deleted. Owner/managers are emailed once when an item hits its reorder level (again only after a restock).
+- **Lost property (HK-10):** Front desk › Lost property; front desk, managers and owner only. Closing an entry records who and when.
+
+### Screens
+- `/admin` › **Operations:** Tasks, Room status, Inspections, Equipment, Recurring jobs, Stock. **Front desk:** Lost property. **Settings:** Task checklists, Cleaning times.
+- `/staff`: **My tasks** (start, checklist, photos, done, report a fault), **Inspections** (inspectors, managers, owner), **Stock** (record used/received/damaged).
+
+### Not yet
+Rosters, shifts and fair task allocation from the cleaning times (M9); push notifications (M11); an antivirus scanner for uploads (interface still pending, SEC-08).
+
+### Tests
+322 passing (33 new in `tests/Feature/Housekeeping`). The `/staff` and new `/admin` screens are covered by Livewire tests; not yet clicked through in a browser (needs a staff sign-in).
