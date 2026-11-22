@@ -431,3 +431,15 @@ Automated browser check of the public site and guest portal: language, one h1, h
 
 ### Tests
 433 passing (8 new in `tests/Feature/Quality`). Backup restore test passed; accessibility checked in the browser.
+
+## Client inventory (22 Nov 2026)
+
+The client supplied the real room types and rooms (PEND-04): Family Luxury Room (1: Family Luxury Room #1), Vista Room (1: Vista Room #1), Studio Apartment Room (2: Skyview, 18), Premium Room - Honeymoon Suite (1: Honeymoon Suite #1), Premium Room - Villa Suite (1: Villa Suite #1), Budget Room (2: rooms 5, 4), Twin Double Bed Room (2), Luxury Room (8: rooms 19, 2, 3, 17, 9, 22, 15, 20) and Standard Room (7: rooms 10, 11, 12, 6, 8, 16, 21), 25 rooms in all.
+
+- `AccommodationSeeder` runs in every environment (part of `DatabaseSeeder`). It only adds what is missing, so re-running never overwrites the owner's edits.
+- Prices and guest capacity were not supplied: every type starts at R0.00 with "Bookable" off. The Rooms & rates form refuses to make a type bookable at R0.00.
+- Rooms without a supplied number have placeholder names and a PENDING note on the room.
+- The DEMO room types and rooms were deactivated in `baselineCL` (kept so old test bookings stay valid). `DemoAccommodationSeeder` no longer switches them back on when re-run. They still need deleting before go-live (`app:production-check`).
+
+### Tests
+4 new in `tests/Feature/Bookings/AccommodationSeederTest.php`.

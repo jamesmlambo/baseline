@@ -7,6 +7,7 @@ namespace Database\Seeders;
 use App\Enums\ExtraPricingUnit;
 use App\Models\AccommodationType;
 use App\Models\Extra;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use RuntimeException;
 
@@ -31,7 +32,8 @@ class DemoAccommodationSeeder extends Seeder
         $roomNumber = 1;
 
         foreach ($types as $index => $definition) {
-            $type = AccommodationType::query()->updateOrCreate(['slug' => $definition['slug']], [
+            $type = AccommodationType::query()->firstOrNew(['slug' => $definition['slug']]);
+            $type->fill([
                 'name' => $definition['name'],
                 'summary' => 'DEMO — replace before launch.',
                 'description' => 'Placeholder description. The client has not yet supplied room names, photos, amenities or prices.',
@@ -40,20 +42,34 @@ class DemoAccommodationSeeder extends Seeder
                 'base_nightly_rate_cents' => $definition['rate'],
                 'extra_guest_nightly_cents' => $definition['extra'],
                 'sort_order' => $index + 1,
-                'is_active' => true,
                 'is_demo' => true,
             ]);
+            $this->activateIfNew($type);
+            $type->save();
 
             $this->seedExtras();
 
             for ($i = 0; $i < $definition['rooms']; $i++, $roomNumber++) {
-                $type->rooms()->updateOrCreate(['code' => sprintf('DEMO%02d', $roomNumber)], [
+                $room = $type->rooms()->firstOrNew(['code' => sprintf('DEMO%02d', $roomNumber)]);
+                $room->fill([
                     'name' => sprintf('Demo Room %02d', $roomNumber),
                     'sort_order' => $roomNumber,
-                    'is_active' => true,
                     'is_demo' => true,
                 ]);
+                $this->activateIfNew($room);
+                $room->save();
             }
+        }
+    }
+
+    /**
+     * New demo records start bookable. Re-seeding never switches a deactivated one back on,
+     * so demo rooms stay hidden once the real rooms have replaced them.
+     */
+    private function activateIfNew(Model $record): void
+    {
+        if (! $record->exists) {
+            $record->is_active = true;
         }
     }
 

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\AccommodationTypes\Schemas;
 
 use App\Filament\Forms\MoneyInput;
+use App\Support\Money;
+use Closure;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
@@ -15,6 +17,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 class AccommodationTypeForm
 {
@@ -96,6 +99,12 @@ class AccommodationTypeForm
                     ->schema([
                         Toggle::make('is_active')
                             ->label('Bookable')
+                            ->helperText('Set a base nightly rate above R0.00 first.')
+                            ->rule(fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
+                                if ($value && self::isZeroRate($get('base_nightly_rate_cents'))) {
+                                    $fail('A room type cannot be bookable at R0.00. Set the base nightly rate first.');
+                                }
+                            })
                             ->default(true),
                         Toggle::make('is_demo')
                             ->label('Demo data')
@@ -106,5 +115,21 @@ class AccommodationTypeForm
                             ->default(0),
                     ]),
             ]);
+    }
+
+    /**
+     * True when the typed base rate is zero. Blank or unreadable amounts are left to the rate field's own validation.
+     */
+    private static function isZeroRate(mixed $state): bool
+    {
+        if ($state instanceof Money) {
+            return $state->isZero();
+        }
+
+        try {
+            return filled($state) && Money::fromRands(str_replace(',', '', (string) $state))->isZero();
+        } catch (InvalidArgumentException) {
+            return false;
+        }
     }
 }
