@@ -443,3 +443,86 @@ The client supplied the real room types and rooms (PEND-04): Family Luxury Room 
 
 ### Tests
 4 new in `tests/Feature/Bookings/AccommodationSeederTest.php`.
+
+## Number of rooms per room type (22 Nov 2026)
+
+Requested by the client: the Rooms & rates form has a **Number of rooms** field (create and edit), so a new Budget room is added by changing 2 to 3.
+
+- `App\Actions\Inventory\SetRoomCount` does the work in one transaction with the rest of the form. Raising the number first switches back on rooms of that type that were switched off, then adds new rooms named "{Type} #N" (code `{SLUG}-N`) for staff to rename in the Rooms list.
+- Lowering it switches off rooms without a booking or block on tonight or later, last in the list first. Rooms are never deleted. If too many rooms are still booked, the form shows why and saves nothing.
+- The Rooms column in the room types list now counts bookable rooms only.
+
+### Tests
+5 new in `tests/Feature/Bookings/RoomCountTest.php`.
+
+## Invoices section (22 Nov 2026)
+
+Requested by the client.
+
+- **Every invoice PDF** has a QR code that opens that invoice online (its private link), and a stamp: **PAID** in green when nothing is left to pay (on the invoice, or on the whole booking), **UNPAID** in red otherwise, VOID for voided invoices. Paid invoices no longer print the EFT payment box.
+- **Online payment succeeds** → the booking is confirmed → the confirmation email now attaches the invoice (stamped PAID) as well as the receipt, and the "booking confirmed" message is sent by **SMS** whatever the preferred channel.
+- **Walk-ins** booked at reception get the same invoice; once reception records the payment it shows PAID.
+- **Bookings › Invoices** (admin): every invoice with search (number, customer, booking reference), PAID/UNPAID/VOID filter and a walk-in filter; an invoice page with lines and amounts; actions to open the PDF, **download** it, **email** it (PDF attached, any address, with an optional message from staff shown at the top of the email), and **WhatsApp** it (opens WhatsApp with the message and link ready, so it works before a WhatsApp provider is approved). Sending is recorded in the audit log.
+- **New invoice** against a booking: the whole stay (only if the booking has no invoice yet, so nobody is billed twice) or an extra charge on its own invoice (same rules as reception's Add charge). It shows UNPAID with the amount to pay; optional email to the guest, with an optional message.
+- `InvoicePolicy`: reception and the finance group (Owner, Manager, Administrator). Issued invoices are never edited or deleted.
+
+### Tests
+8 new in `tests/Feature/Finance/InvoicesTest.php`.
+
+## Quotations section (22 Nov 2026)
+
+Requested by the client: a section like Invoices for quotations.
+
+- **Bookings › Quotations** (admin): every quotation with search (number, customer), Valid/Expired filter and status (Valid, Expired, Converted). Actions: open the PDF, **download**, **email** (PDF attached, optional staff message), **WhatsApp** (click-to-chat with the quotation link). An expired quotation cannot be sent.
+- **New quotation** for a customer who has not booked: name, email and phone (stored encrypted), stay dates, then any mix of **room types** (priced by the rate engine, seasonal rates included; rooms × adults/children), **extras** (their own price and unit; the quantity is worked out from the nights and guests if left empty) and **services** such as spa treatments and pool/day passes (per person or per booking, × sessions). Staff never type prices. A live total is shown while filling in. Room types without a price are not offered. Validity in days (default 7), an optional note printed on the quotation, optional email on creation.
+- Quotation PDFs have a QR code to the quotation's private link (`/documents/quotation/{token}`) and state that a quotation is not a booking.
+- Migration `2026_12_03_100000`: `quotations.recipient_email`, `recipient_phone` (encrypted), `notes`, `public_token`.
+- `QuotationPolicy`: reception and the finance group. Quotations are never edited or deleted.
+- **Book** (PAY-04): turns an accepted quotation into one booking held for payment, like a front-desk booking. All quoted rooms (several types and rooms allowed) are checked for availability and assigned; extras are added; quoted services (spa, day passes) go on the booking's invoice marked "time to be arranged", for staff to schedule in Leisure. Staff confirm the guest's name and contact details, who booked it and how long to hold the rooms. Prices are today's: if they changed since the quote, the Book window says so before anything is created. A quotation can be booked once, only while valid, and only if it has rooms. Status then shows Booked with the booking linked.
+- Migration `2026_12_03_110000`: `quotations.items` (jsonb), what the quote was made of. `CreateReservation` now accepts extra rooms and other priced lines for this.
+
+### Tests
+6 new in `tests/Feature/Finance/QuotationsTest.php`.
+
+## Email history for invoices, quotations and receipts (22 Nov 2026)
+
+Requested by the client: anything emailed must show that it was sent, to which address, and how many times.
+
+- New table `document_deliveries` (migration `2026_12_03_120000`): one row per email of an invoice, quotation or receipt, with the address (encrypted), when, who sent it (empty = automatic) and how (sent by staff, or automatically with the booking confirmation).
+- Recorded after a successful send: Email on an invoice or quotation, "Email it now" when creating one, and the booking-confirmation email (its attached invoices and receipts).
+- Invoices and Quotations lists: an **Emailed** column ("Not sent", "Sent 2× to guest@…", or "Sent 3× to 2 addresses"; hover for each address). The invoice and quotation pages have an **Email history** section: each address with how many times and when last, then every email with time, address, how and by whom.
+- Addresses are compared in lower case, so "Guest@Example.test" and "guest@example.test" count as one address.
+
+### Tests
+3 new (2 in `InvoicesTest`, 1 in `QuotationsTest`).
+
+## Weekend roster (24 Nov 2026)
+
+The client said some workers also come on Saturday and Sunday. The roster already supported every day of the week (Staff › Roster patterns, one shift per weekday per employee); only the DEMO staff were Monday to Friday.
+
+- `DemoStaffSeeder`: the DEMO Receptionist and DEMO Housekeeping worker now also work Saturday and Sunday (keeping Monday to Friday); Maintenance and Inspector stay on weekdays. Re-running the seeder adds missing weekend days only and leaves other roster edits alone. Applied to `baselineCL`.
+- Real staff, their days and shift times are still to be supplied (PEND-04); they are entered under Staff › Employees and Staff › Roster patterns.
+
+### Tests
+2 new in `tests/Feature/Staff/WeekendRosterTest.php`.
+
+## Recurring tasks by day, week or month (24 Nov 2026)
+
+Requested by the client: a task given to a worker can be for the day, the week or the month, so tasks must be able to repeat.
+
+- **New task** (Operations › Tasks) has a **Repeat** option: does not repeat, or every N days, weeks or months, with an optional end date. The first task is created at once for its first due date; the rest come from a recurring schedule, each for the same worker, at the same time of day, with the same checklist, priority and notes.
+- **Recurring jobs** (Operations) now repeats every N days, weeks or months (was days only), with an optional end date, a due time, priority and notes. Monthly jobs keep their day of the month (31 January → 28 February → 31 March). Changing the next due date or how often it repeats restarts the pattern from the new date.
+- `maintenance:run-schedules` (daily 06:05) creates each task on its date, still one task when runs were missed, and switches a schedule off once its end date has passed.
+- Migration `2026_12_04_100000`: `maintenance_schedules.interval_days` renamed `repeat_every`; new `repeat_unit`, `starts_on`, `ends_on`, `due_time`, `priority`, `notes`. Existing schedules carry on every N days. New enum `App\Enums\RepeatUnit`.
+
+### Tests
+5 new in `tests/Feature/Housekeeping/RecurringTasksTest.php`; the existing schedule test updated.
+
+### Update: choose the days with tick boxes (24 Nov 2026)
+
+At the client's request the New task form now asks **When**:
+- **One day**: a calendar date and an optional time (empty = by the end of that day; the date defaults to today, so new tasks always have a due date).
+- **On chosen days every week**: tick boxes Mon–Sun (with select all), a time, a start date from the calendar and an optional end date. The first task is on the first ticked day from the start date; then one task on each ticked day, e.g. "Every Mon, Wed, Fri" at 09:00. All seven ticked = daily; Mon–Fri = "Every weekday"; Sat & Sun = "Every weekend".
+- **Every month**: on the start date's day of each month, at the chosen time, with an optional end date.
+
+Recurring jobs has the same day tick boxes when it repeats weekly; if "Next due" is not a ticked day it moves to the next ticked day. Migration `2026_12_04_110000`: `maintenance_schedules.weekdays` (jsonb). 10 tests in `RecurringTasksTest`.

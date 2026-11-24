@@ -3,7 +3,7 @@
 
 Thank you, {{ $booking->guest?->first_name ?? $booking->lead_guest_name }}. Booking **{{ $booking->reference }}** is confirmed for {{ $booking->arrival_date->format('l j F Y') }} to {{ $booking->departure_date->format('l j F Y') }}.
 
-Your receipt is attached.
+Your invoice and receipt are attached.
 
 @if ($statusUrl)
 <x-mail::button :url="$statusUrl">

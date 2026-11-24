@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\Listeners;
 
+use App\Enums\MessageChannel;
 use App\Events\BookingConfirmed;
 use App\Mail\BookingConfirmedMail;
+use App\Models\DocumentDelivery;
 use App\Services\Messaging\BookingMessages;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
 /**
- * Tells the guest their booking is confirmed (MSG-03, WA-05): email with receipt attached,
- * plus a WhatsApp/SMS message with the booking link. A failed email never blocks the message.
+ * Tells the guest their booking is confirmed (MSG-03, WA-05): email with the invoice (stamped PAID)
+ * and receipt attached, plus an SMS with the booking link. A failed email never blocks the SMS.
  */
 class SendBookingConfirmation
 {
@@ -25,12 +27,18 @@ class SendBookingConfirmation
 
         if ($email !== null && $email !== '') {
             try {
-                Mail::to($email)->send(new BookingConfirmedMail($booking));
+                $mail = new BookingConfirmedMail($booking);
+                Mail::to($email)->send($mail);
+
+                foreach ($mail->documents() as $document) {
+                    $document->recordEmail($email, DocumentDelivery::REASON_BOOKING_CONFIRMED);
+                }
             } catch (Throwable $exception) {
                 report($exception);
             }
         }
 
-        $this->messages->paymentConfirmed($booking);
+        // The client wants the "booking successful" message by SMS, whatever the preferred channel.
+        $this->messages->paymentConfirmed($booking, MessageChannel::Sms);
     }
 }

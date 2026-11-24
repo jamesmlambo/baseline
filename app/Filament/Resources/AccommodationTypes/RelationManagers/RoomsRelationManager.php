@@ -21,6 +21,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
+use Livewire\Attributes\On;
 
 /**
  * Physical rooms of a type. Rooms are deactivated, never deleted.
@@ -28,6 +29,12 @@ use Illuminate\Support\HtmlString;
 class RoomsRelationManager extends RelationManager
 {
     protected static string $relationship = 'rooms';
+
+    /**
+     * Re-renders the list after "Number of rooms" was saved on the edit page.
+     */
+    #[On('room-count-changed')]
+    public function refreshRooms(): void {}
 
     public function form(Schema $schema): Schema
     {

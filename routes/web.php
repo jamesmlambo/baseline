@@ -51,7 +51,7 @@ Route::get('/p/{token}', [PriceListController::class, 'show'])
     ->name('price-list.show');
 
 Route::get('/documents/{type}/{token}', DocumentController::class)
-    ->where(['type' => 'invoice|receipt', 'token' => '[A-Za-z0-9]{48}'])
+    ->where(['type' => 'invoice|receipt|quotation', 'token' => '[A-Za-z0-9]{48}'])
     ->name('documents.show');
 
 Route::post('/webhooks/payments/{gateway}', PaymentWebhookController::class)

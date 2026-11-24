@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\AccommodationTypes\Schemas;
 
+use App\Actions\Inventory\SetRoomCount;
 use App\Filament\Forms\MoneyInput;
 use App\Support\Money;
 use Closure;
@@ -44,6 +45,14 @@ class AccommodationTypeForm
                             ->alphaDash()
                             ->unique(ignoreRecord: true)
                             ->helperText('Used in the website address.'),
+                        TextInput::make('room_count')
+                            ->label('Number of rooms')
+                            ->integer()
+                            ->minValue(0)
+                            ->maxValue(SetRoomCount::MAX_ROOMS)
+                            ->required()
+                            ->default(1)
+                            ->helperText('Raise it when a room becomes available: new rooms are added and can be renamed in the Rooms list. Lowering it switches off rooms without upcoming bookings; nothing is deleted.'),
                         Textarea::make('summary')
                             ->rows(2)
                             ->columnSpanFull(),

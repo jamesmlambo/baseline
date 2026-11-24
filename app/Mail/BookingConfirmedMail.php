@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Mail;
 
 use App\Models\Booking;
+use App\Models\Invoice;
+use App\Models\Receipt;
 use App\Services\Finance\DocumentPdf;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Attachment;
@@ -12,9 +14,10 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Collection;
 
 /**
- * Sent once a booking is confirmed, with the receipt(s) attached (WA-05, WA-06).
+ * Sent once a booking is confirmed, with the invoice(s) and receipt(s) attached (WA-05, WA-06).
  */
 class BookingConfirmedMail extends Mailable
 {
@@ -42,9 +45,21 @@ class BookingConfirmedMail extends Mailable
     {
         $pdf = app(DocumentPdf::class);
 
-        return $this->booking->receipts()->get()
-            ->map(fn ($receipt) => Attachment::fromData(fn (): string => $pdf->render($receipt), $pdf->filename($receipt))->withMime('application/pdf'))
+        return $this->documents()
+            ->map(fn ($document) => Attachment::fromData(fn (): string => $pdf->render($document), $pdf->filename($document))->withMime('application/pdf'))
             ->values()
             ->all();
+    }
+
+    /**
+     * The invoices and receipts attached to this email.
+     *
+     * @return Collection<int, Invoice|Receipt>
+     */
+    public function documents(): Collection
+    {
+        return $this->booking->invoices()->whereNull('voided_at')->get()
+            ->toBase()
+            ->concat($this->booking->receipts()->get());
     }
 }

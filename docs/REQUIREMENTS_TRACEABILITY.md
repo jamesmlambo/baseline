@@ -18,7 +18,7 @@ Only requirements that have been worked on are listed. Everything else is still 
 | WEB-08 | No invented facts / DEMO badge | Tested | Layout, `SettingSeeder` | `ExampleTest`, `StaffManagementTest` |
 | PEND-01–14 | Pending decisions visible in admin | Implemented | `SettingSeeder`, Settings screen | `StaffManagementTest` |
 | DEC-02 / INV-02 | Physical room assigned at booking | Tested | `PlaceBooking` | `PlaceBookingTest` |
-| INV-01 | Types, rooms, seasonal rates, blocks | Tested (rate plans, coupons, taxes deferred to M4) | Models, admin screens, `AccommodationSeeder` (client inventory) | `InventoryTest`, `InventoryAdminTest`, `AccommodationSeederTest` |
+| INV-01 | Types, rooms, seasonal rates, blocks | Tested (rate plans, coupons, taxes deferred to M4) | Models, admin screens, `AccommodationSeeder` (client inventory), `SetRoomCount` ("Number of rooms") | `InventoryTest`, `InventoryAdminTest`, `AccommodationSeederTest`, `RoomCountTest` |
 | INV-03 | One active claim per room night | Tested | `room_nights_one_active_claim` | `InventoryTest`, `LastRoomRaceTest` |
 | INV-04 | Exclusion constraint on assignments | Tested | `booking_rooms_no_overlap` | `InventoryTest` |
 | INV-05 | Maintenance / owner blocks | Tested | `BlockRoom`, Room blocks screen | `InventoryTest`, `InventoryAdminTest` |
@@ -46,8 +46,8 @@ Only requirements that have been worked on are listed. Everything else is still 
 | SEC-07 | Encrypted guest contact details | Tested | `Guest` casts + lookup hashes | `OnlineBookingTest`, `FinanceAdminTest` |
 | OBK-01/02 | Price summary; Instant EFT first | Tested | `/book`, `PaymentMethod::onlineOrder` | `OnlineBookingTest` |
 | OBK-04 | Proof of EFT never "paid" | Tested | `PaymentLedger` | `PaymentsTest` |
-| PAY-01 | Separate document types | Tested | Finance models | `PaymentsTest` |
-| PAY-02 | Sequential numbering, PDFs | Tested | `DocumentNumberer`, `DocumentPdf` | `PaymentsTest`, `OnlineBookingTest` |
+| PAY-01 | Separate document types; Quotations section (quotes priced from room types, extras and services such as spa and day passes; view, download, email, WhatsApp; book a quotation, PAY-04) | Tested | Finance models, `QuoteBuilder`, `QuotationDelivery`, `QuotationResource`, `BookQuotation` | `PaymentsTest`, `QuotationsTest` |
+| PAY-02 | Sequential numbering, PDFs; invoice QR code and PAID/UNPAID stamp; Invoices section (view, search, issue against bookings, email, WhatsApp); invoice emailed and SMS sent on payment | Tested | `DocumentNumberer`, `DocumentPdf`, `InvoiceDelivery`, `IssueBookingInvoice`, `InvoiceResource` | `PaymentsTest`, `OnlineBookingTest`, `InvoicesTest` |
 | PAY-03 | Issued documents immutable | Tested | `IsIssuedDocument` | `PaymentsTest` |
 | PAY-04 | Quotation → invoice | Tested | `DocumentIssuer::convertQuotation` | `PaymentsTest` |
 | PAY-05 | Gateway interface + fake driver | Tested (real provider pending PEND-07) | `PaymentGateway`, `FakeGateway` | `OnlineBookingTest` |
@@ -93,7 +93,7 @@ Only requirements that have been worked on are listed. Everything else is still 
 | HK-05 | Scored inspections, rework, re-inspection | Tested (scale PENDING PEND-15) | `Inspections::record` | `HousekeepingTest`, `HousekeepingScreensTest` |
 | HK-06 | Ready only after clean + inspection, owner override | Tested | `Inspections`, Room status board | `HousekeepingTest`, `HousekeepingScreensTest` |
 | HK-07 | Cleaning effort per room type | Implemented (used by rosters in M9) | `CleaningEstimate` | — |
-| HK-08 | Faults, preventive schedules, equipment history, warranties, costs | Tested | `TaskManager::reportFault`, `RunMaintenanceSchedules`, Equipment | `HousekeepingTest`, `HousekeepingScreensTest` |
+| HK-08 | Faults, preventive schedules, equipment history, warranties, costs; any task repeating every N days, weeks or months | Tested | `TaskManager::reportFault`, `TaskManager::createRecurring`, `RunMaintenanceSchedules`, `RepeatUnit`, Equipment | `HousekeepingTest`, `HousekeepingScreensTest`, `RecurringTasksTest` |
 | HK-09 | Stock ledger, low-stock alerts | Tested | `StockLedger` | `HousekeepingTest`, `HousekeepingScreensTest` |
 | HK-10 | Restricted lost-property log | Tested | `LostPropertyItemPolicy` | `HousekeepingTest` |
 | EMP-01 | Profiles, self-completed, approved | Tested | `EmployeeProfiles`, Employees, My details | `PeopleTest`, `PeopleScreensTest` |

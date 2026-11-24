@@ -12,7 +12,7 @@ Seeded from `FINAL_SPECIFICATION.md` §3.2. Items with a setting show up in **Ad
 | PEND-05 | Policies, check-in/out times | `booking.check_in_time`, `booking.check_out_time` (empty) | Empty. |
 | PEND-06 | Override authority | — | Owner only: confirm without payment (M4) and check out with money owed (M5), each with a recorded reason. |
 | REC-04 (VERIFY) | Guest register required fields | `register.required_fields` (full name only) | Staff can capture ID, nationality, address, vehicle; only full name is enforced until a legal adviser confirms. |
-| PEND-07 | Providers (payment, SMS, WhatsApp, channel manager) | `messaging.monthly_cap_*` (empty), `messaging.preferred_channel` (whatsapp) | Fake payment gateway and log-only SMS/WhatsApp drivers. Nothing is sent or charged. |
+| PEND-07 | Providers (payment, SMS, WhatsApp, channel manager) | `messaging.monthly_cap_*` (empty), `messaging.preferred_channel` (whatsapp) | Fake payment gateway and log-only SMS/WhatsApp drivers. Nothing is sent or charged. The "booking confirmed" message always goes by SMS (client request, 22 Nov 2026), so an SMS provider is needed before go-live. Invoices are sent by WhatsApp through click-to-chat links until a WhatsApp provider is approved. |
 | PEND-14b | Feedback request after checkout | `messaging.feedback_request_enabled` (no) | Template exists, switched off. |
 | WA price lists | How long links work; when to follow up | `price_lists.valid_hours` (24), `price_lists.follow_up_hours` (4) | Development defaults. |
 | PEND-08 | Custom Laravel vs hybrid PMS | — | Custom Laravel behind interfaces. |

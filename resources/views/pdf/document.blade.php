@@ -6,6 +6,10 @@
                 <strong>{{ $document->recipient_name }}</strong>
             </td>
             <td style="text-align:right;">
+                @if ($stamp ?? null)
+                    @php($stampColour = ['PAID' => '#15803d', 'UNPAID' => '#b91c1c'][$stamp] ?? '#57534e')
+                    <div style="display:inline-block;margin-bottom:8px;padding:4px 14px;border:3px solid {{ $stampColour }};color:{{ $stampColour }};font-size:20px;font-weight:bold;letter-spacing:2px;">{{ $stamp }}</div>
+                @endif
                 @if ($document->booking)
                     <div class="muted">Booking reference</div>
                     <strong>{{ $document->booking->reference }}</strong>
@@ -60,7 +64,25 @@
             @endif
         </table>
 
-        @if ($bank)
+        @if ($document instanceof \App\Models\Quotation)
+            @if ($document->notes)
+                <div class="box">{!! nl2br(e($document->notes)) !!}</div>
+            @endif
+            <p class="muted" style="margin-top:14px;">This is a quotation, not a booking: rooms and services are only reserved once you book and pay. Prices are valid until the date shown above, subject to availability.</p>
+        @endif
+
+        @if ($invoiceQr ?? null)
+            <table style="width:100%;margin-top:18px;">
+                <tr>
+                    <td style="width:90px;"><img src="{{ $invoiceQr }}" width="80" height="80" alt="QR code for {{ strtolower($title) }} {{ $document->number }}"></td>
+                    <td class="muted" style="vertical-align:middle;font-size:9px;">
+                        Scan to open this {{ strtolower($title) }} online and check that it is genuine and up to date.
+                    </td>
+                </tr>
+            </table>
+        @endif
+
+        @if ($bank && ($stamp ?? null) !== 'PAID')
             <div class="box">
                 <strong>Pay by EFT</strong><br>
                 {{ $bank['bank'] }} · {{ $bank['account_name'] }}<br>

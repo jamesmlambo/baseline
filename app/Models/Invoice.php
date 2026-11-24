@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Casts\MoneyCast;
 use App\Enums\PaymentRecordStatus;
+use App\Models\Concerns\HasEmailHistory;
 use App\Models\Concerns\IsIssuedDocument;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Invoice extends Model
 {
-    use IsIssuedDocument;
+    use HasEmailHistory, IsIssuedDocument;
 
     protected function casts(): array
     {
@@ -92,5 +93,46 @@ class Invoice extends Model
     public function isPaid(): bool
     {
         return $this->balanceDue()->cents <= 0;
+    }
+
+    /**
+     * Shown as PAID on the invoice: nothing left on this invoice, or the whole booking is paid
+     * (one payment can cover the stay and later charge invoices together).
+     */
+    public function isSettled(): bool
+    {
+        if ($this->voided_at !== null) {
+            return false;
+        }
+
+        if ($this->isPaid()) {
+            return true;
+        }
+
+        $booking = $this->relationLoaded('booking') ? $this->booking : $this->booking()->first();
+
+        return $booking !== null
+            && $booking->paidTotal()->cents > 0
+            && $booking->balanceDue()->cents <= 0;
+    }
+
+    /**
+     * The stamp printed on the invoice and shown in the admin: PAID, UNPAID or VOID.
+     */
+    public function statusLabel(): string
+    {
+        return match (true) {
+            $this->voided_at !== null => 'VOID',
+            $this->isSettled() => 'PAID',
+            default => 'UNPAID',
+        };
+    }
+
+    /**
+     * The guest's own link to this invoice (PDF). The QR code on the invoice points here.
+     */
+    public function publicUrl(): string
+    {
+        return route('documents.show', ['invoice', $this->public_token]);
     }
 }

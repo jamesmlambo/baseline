@@ -45,6 +45,49 @@ class DocumentIssuer
                 'tax_cents' => $tax,
                 'total_cents' => $total,
                 'valid_until' => today()->addDays($validDays)->toDateString(),
+                'public_token' => Str::random(48),
+                'issued_by' => $by?->id,
+                'issued_at' => now(),
+            ]);
+
+            $this->writeLines($quotation, $lines);
+
+            return $quotation;
+        });
+    }
+
+    /**
+     * PAY-01: a quotation for a customer who has not booked yet, priced by QuoteBuilder.
+     *
+     * @param  array{name: string, email?: string|null, phone?: string|null}  $customer
+     * @param  list<array{description: string, quantity: float|int, unit: Money, total: Money}>  $lines
+     * @param  array<string, mixed>|null  $items  what the quote was made of, so it can be booked later
+     */
+    public function quotationForCustomer(array $customer, array $lines, int $validDays, ?string $notes = null, ?User $by = null, ?array $items = null): Quotation
+    {
+        if ($lines === [] || trim($customer['name']) === '') {
+            throw new InvalidArgumentException('A quotation needs a customer name and at least one item.');
+        }
+
+        if ($validDays < 1) {
+            throw new InvalidArgumentException('A quotation must be valid for at least one day.');
+        }
+
+        return DB::transaction(function () use ($customer, $lines, $validDays, $notes, $by, $items): Quotation {
+            [$subtotal, $tax, $total] = $this->totals($lines);
+
+            $quotation = Quotation::query()->create([
+                'number' => $this->numberer->next('quotation'),
+                'recipient_name' => trim($customer['name']),
+                'recipient_email' => filled($customer['email'] ?? null) ? trim((string) $customer['email']) : null,
+                'recipient_phone' => filled($customer['phone'] ?? null) ? trim((string) $customer['phone']) : null,
+                'subtotal_cents' => $subtotal,
+                'tax_cents' => $tax,
+                'total_cents' => $total,
+                'valid_until' => today()->addDays($validDays)->toDateString(),
+                'notes' => filled($notes) ? trim((string) $notes) : null,
+                'items' => $items,
+                'public_token' => Str::random(48),
                 'issued_by' => $by?->id,
                 'issued_at' => now(),
             ]);

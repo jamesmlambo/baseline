@@ -7,6 +7,7 @@ require_once __DIR__.'/HousekeepingTestHelpers.php';
 use App\Actions\Housekeeping\GenerateDeepCleans;
 use App\Actions\Housekeeping\RunMaintenanceSchedules;
 use App\Enums\InspectionStatus;
+use App\Enums\RepeatUnit;
 use App\Enums\RoomCleaningStatus;
 use App\Enums\StaffRole;
 use App\Enums\StockMovementReason;
@@ -245,7 +246,7 @@ it('HK-08 creates preventive work when it is due and moves the schedule on', fun
     $worker = staffUser(StaffRole::MaintenanceWorker);
     $schedule = MaintenanceSchedule::query()->create([
         'title' => 'Backwash pool filter', 'task_type' => TaskType::Pool, 'location' => 'Pool',
-        'interval_days' => 7, 'next_due_on' => '2027-06-01', 'assigned_to' => $worker->id,
+        'repeat_every' => 7, 'repeat_unit' => RepeatUnit::Day, 'next_due_on' => '2027-06-01', 'assigned_to' => $worker->id,
     ]);
 
     expect(app(RunMaintenanceSchedules::class)->handle())->toBe(1)

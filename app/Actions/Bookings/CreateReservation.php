@@ -44,7 +44,7 @@ class CreateReservation
 
             $booking = $this->placeBooking->handle(new BookingRequest(
                 stay: $request->stay,
-                rooms: [new RoomRequest($request->type, $request->adults, $request->children, $request->room)],
+                rooms: [new RoomRequest($request->type, $request->adults, $request->children, $request->room), ...$request->additionalRooms],
                 leadGuestName: $guest->fullName(),
                 source: $request->source,
                 status: $request->status,
@@ -55,7 +55,7 @@ class CreateReservation
                 createdBy: $request->createdBy,
             ));
 
-            $extrasTotal = $this->addExtras($booking, $request);
+            $extrasTotal = $this->addExtras($booking, $request)->add($this->addChargeLines($booking, $request));
             $total = $booking->total_cents->add($extrasTotal);
 
             $booking->forceFill([
@@ -121,6 +121,31 @@ class CreateReservation
                 'description' => sprintf('%s (%s)', $extra->name, $extra->pricing_unit->label()),
                 'quantity' => $quantity,
                 'unit_price_cents' => $extra->price_cents,
+                'total_cents' => $lineTotal,
+            ]);
+
+            $total = $total->add($lineTotal);
+        }
+
+        return $total;
+    }
+
+    /**
+     * Priced items that are not extras (e.g. spa or day passes from a quotation), billed on the stay invoice.
+     */
+    private function addChargeLines(Booking $booking, ReservationRequest $request): Money
+    {
+        $total = Money::zero();
+
+        foreach ($request->chargeLines as $line) {
+            $lineTotal = $line['unit']->multiply($line['quantity']);
+
+            BookingExtra::query()->create([
+                'booking_id' => $booking->id,
+                'extra_id' => null,
+                'description' => $line['description'],
+                'quantity' => $line['quantity'],
+                'unit_price_cents' => $line['unit'],
                 'total_cents' => $lineTotal,
             ]);
 

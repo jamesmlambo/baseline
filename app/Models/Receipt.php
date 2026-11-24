@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Casts\MoneyCast;
+use App\Models\Concerns\HasEmailHistory;
 use App\Models\Concerns\IsIssuedDocument;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['number', 'payment_id', 'invoice_id', 'booking_id', 'recipient_name', 'amount_cents', 'public_token', 'issued_at'])]
 class Receipt extends Model
 {
-    use IsIssuedDocument;
+    use HasEmailHistory, IsIssuedDocument;
 
     protected function casts(): array
     {

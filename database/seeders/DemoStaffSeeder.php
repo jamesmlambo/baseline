@@ -19,6 +19,11 @@ use RuntimeException;
  */
 class DemoStaffSeeder extends Seeder
 {
+    /**
+     * Demo roles rostered on Saturday and Sunday as well as Monday to Friday.
+     */
+    public const WEEKEND_ROLES = [StaffRole::Receptionist, StaffRole::HousekeepingWorker];
+
     public function run(): void
     {
         if (! app()->environment('local')) {
@@ -47,18 +52,33 @@ class DemoStaffSeeder extends Seeder
                 'is_demo' => true,
             ]);
 
-            if ($employee->rosterPatterns()->exists()) {
-                continue;
+            $shift = $index % 2 === 0 ? $day : $late;
+
+            // A new employee gets Monday to Friday; an existing roster is left as staff set it.
+            if (! $employee->rosterPatterns()->exists()) {
+                foreach ([1, 2, 3, 4, 5] as $weekday) {
+                    $this->addDay($employee, $shift, $weekday);
+                }
             }
 
-            foreach ([1, 2, 3, 4, 5] as $weekday) {
-                RosterPattern::query()->create([
-                    'employee_id' => $employee->id,
-                    'shift_id' => ($index % 2 === 0 ? $day : $late)->id,
-                    'weekday' => $weekday,
-                    'effective_from' => '2026-01-01',
-                ]);
+            // Front desk and housekeeping also work weekends (client request, 24 Nov 2026).
+            if (in_array($role, self::WEEKEND_ROLES, true)) {
+                foreach ([6, 7] as $weekday) {
+                    if (! $employee->rosterPatterns()->where('weekday', $weekday)->exists()) {
+                        $this->addDay($employee, $shift, $weekday);
+                    }
+                }
             }
         }
+    }
+
+    private function addDay(Employee $employee, Shift $shift, int $weekday): void
+    {
+        RosterPattern::query()->create([
+            'employee_id' => $employee->id,
+            'shift_id' => $shift->id,
+            'weekday' => $weekday,
+            'effective_from' => '2026-01-01',
+        ]);
     }
 }

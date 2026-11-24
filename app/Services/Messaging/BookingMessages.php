@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Messaging;
 
+use App\Enums\MessageChannel;
 use App\Models\Booking;
 use App\Models\Message;
 use App\Models\PriceList;
@@ -33,9 +34,9 @@ class BookingMessages
         ]);
     }
 
-    public function paymentConfirmed(Booking $booking): ?Message
+    public function paymentConfirmed(Booking $booking, ?MessageChannel $channel = null): ?Message
     {
-        return $this->toGuest('payment_confirmed', $booking);
+        return $this->toGuest('payment_confirmed', $booking, channel: $channel);
     }
 
     public function preArrival(Booking $booking): ?Message
@@ -90,7 +91,7 @@ class BookingMessages
     /**
      * @param  array<string, string|int|null>  $extra
      */
-    private function toGuest(string $key, Booking $booking, array $extra = []): ?Message
+    private function toGuest(string $key, Booking $booking, array $extra = [], ?MessageChannel $channel = null): ?Message
     {
         return $this->messenger->send(
             $key,
@@ -105,6 +106,7 @@ class BookingMessages
             ],
             $key.':'.$booking->id,
             booking: $booking,
+            channel: $channel,
         );
     }
 

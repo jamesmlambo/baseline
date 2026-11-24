@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Tasks;
 
+use App\Enums\RepeatUnit;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use App\Enums\TaskType;
@@ -12,18 +13,24 @@ use App\Filament\Actions\PaymentActions;
 use App\Filament\Resources\Tasks\Pages\ListTasks;
 use App\Models\Asset;
 use App\Models\Room;
+use App\Models\RosterPattern;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\Housekeeping\TaskManager;
 use BackedEnum;
+use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
-use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\TimePicker;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -38,6 +45,12 @@ use UnitEnum;
  */
 class TaskResource extends Resource
 {
+    public const ONE_DAY = 'once';
+
+    public const CHOSEN_DAYS = 'weekdays';
+
+    public const MONTHLY = 'monthly';
+
     protected static ?string $model = Task::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
@@ -77,10 +90,74 @@ class TaskResource extends Resource
                 ->options(fn (Get $get): array => HousekeepingActions::assigneeOptions(filled($get('type')) ? TaskType::from($get('type')) : null))
                 ->searchable(),
             Select::make('priority')->options(TaskPriority::options())->default(TaskPriority::Normal->value)->required(),
-            DateTimePicker::make('due_at')->label('Due')->seconds(false)->timezone('Africa/Johannesburg'),
+            Section::make('When')
+                ->columnSpanFull()
+                ->columns(3)
+                ->schema([
+                    Radio::make('schedule')
+                        ->hiddenLabel()
+                        ->options([
+                            self::ONE_DAY => 'One day',
+                            self::CHOSEN_DAYS => 'On chosen days every week',
+                            self::MONTHLY => 'Every month',
+                        ])
+                        ->default(self::ONE_DAY)
+                        ->inline()
+                        ->live()
+                        ->required()
+                        ->columnSpanFull(),
+                    CheckboxList::make('days')
+                        ->label('Days')
+                        ->options(collect(RosterPattern::WEEKDAYS)->map(fn (string $day): string => substr($day, 0, 3))->all())
+                        ->columns(7)
+                        ->bulkToggleable()
+                        ->required(fn (Get $get): bool => $get('schedule') === self::CHOSEN_DAYS)
+                        ->visible(fn (Get $get): bool => $get('schedule') === self::CHOSEN_DAYS)
+                        ->columnSpanFull(),
+                    DatePicker::make('date')
+                        ->label(fn (Get $get): string => $get('schedule') === self::ONE_DAY ? 'Date' : 'Starting')
+                        ->native(false)
+                        ->displayFormat('D j M Y')
+                        ->default(today())
+                        ->required()
+                        ->helperText(fn (Get $get): ?string => $get('schedule') === self::MONTHLY ? 'Repeats on this day of each month.' : null),
+                    TimePicker::make('time')
+                        ->label('Time')
+                        ->seconds(false)
+                        ->required(fn (Get $get): bool => $get('schedule') !== self::ONE_DAY)
+                        ->helperText(fn (Get $get): ?string => $get('schedule') === self::ONE_DAY ? 'Optional: empty means by the end of the day.' : null),
+                    DatePicker::make('repeat_until')
+                        ->label('Until (optional)')
+                        ->native(false)
+                        ->displayFormat('D j M Y')
+                        ->afterOrEqual('date')
+                        ->helperText('Empty: keeps repeating until switched off under Recurring jobs.')
+                        ->visible(fn (Get $get): bool => $get('schedule') !== self::ONE_DAY),
+                ]),
             TagsInput::make('checklist')->label('Checklist (leave empty to use the standard one)')->placeholder('Add an item and press Enter')->columnSpanFull(),
             Textarea::make('notes')->rows(2)->columnSpanFull(),
         ]);
+    }
+
+    /**
+     * Creates the task from the New task form: once, on the ticked days every week, or every month.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function createFromForm(array $data, User $by): Task
+    {
+        $date = CarbonImmutable::parse($data['date'] ?? 'today', 'Africa/Johannesburg');
+        $data['due_at'] = filled($data['time'] ?? null)
+            ? CarbonImmutable::parse($date->toDateString().' '.$data['time'], 'Africa/Johannesburg')
+            : $date->endOfDay()->startOfMinute();
+        $until = filled($data['repeat_until'] ?? null) ? (string) $data['repeat_until'] : null;
+        $tasks = app(TaskManager::class);
+
+        return match ($data['schedule'] ?? self::ONE_DAY) {
+            self::CHOSEN_DAYS => $tasks->createRecurring($data, RepeatUnit::Week, 1, $until, $by, array_map('intval', $data['days'] ?? [])),
+            self::MONTHLY => $tasks->createRecurring($data, RepeatUnit::Month, 1, $until, $by),
+            default => $tasks->create($data, $by),
+        };
     }
 
     public static function infolist(Schema $schema): Schema

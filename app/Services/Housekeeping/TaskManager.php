@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace App\Services\Housekeeping;
 
+use App\Enums\RepeatUnit;
 use App\Enums\RoomCleaningStatus;
 use App\Enums\StaffRole;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use App\Enums\TaskType;
 use App\Models\CleaningEstimate;
+use App\Models\MaintenanceSchedule;
 use App\Models\Room;
 use App\Models\Task;
 use App\Models\TaskChecklistTemplate;
 use App\Models\User;
 use App\Notifications\StaffAlert;
 use App\Support\Money;
+use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
@@ -57,6 +60,83 @@ class TaskManager
         $this->notifyAssignee($task);
 
         return $task;
+    }
+
+    /**
+     * A task that repeats (HK-08): on chosen days of the week, or every N days, weeks or months.
+     * The first task is created now for the first due date on or after the start; a recurring
+     * schedule creates the next ones on their dates (maintenance:run-schedules).
+     *
+     * @param  array<string, mixed>  $data  task fields; `due_at` is the start date and the time of day
+     * @param  list<int>  $weekdays  ticked days (1 = Monday … 7 = Sunday), with RepeatUnit::Week
+     */
+    public function createRecurring(array $data, RepeatUnit $unit, int $every, ?string $until, User $by, array $weekdays = []): Task
+    {
+        if (blank($data['due_at'] ?? null)) {
+            throw new InvalidArgumentException('Choose when the task starts, so it can repeat from that date.');
+        }
+
+        if ($every < 1 || $every > 365) {
+            throw new InvalidArgumentException('Repeat every 1 to 365 days, weeks or months.');
+        }
+
+        $weekdays = array_values(array_unique(array_map('intval', $weekdays)));
+
+        if ($weekdays !== [] && ($unit !== RepeatUnit::Week || array_diff($weekdays, range(1, 7)) !== [])) {
+            throw new InvalidArgumentException('Days of the week can only be chosen for a weekly task.');
+        }
+
+        $start = CarbonImmutable::parse($data['due_at'])->setTimezone('Africa/Johannesburg');
+
+        if ($until !== null && $until < $start->toDateString()) {
+            throw new InvalidArgumentException('The end date must be on or after the start date.');
+        }
+
+        return DB::transaction(function () use ($data, $unit, $every, $until, $by, $start, $weekdays): Task {
+            $probe = new MaintenanceSchedule([
+                'repeat_every' => $every,
+                'repeat_unit' => $unit,
+                'weekdays' => $weekdays !== [] ? $weekdays : null,
+                'starts_on' => $start->toDateString(),
+                'ends_on' => $until,
+            ]);
+
+            // On chosen days, the first task is on the first ticked day from the start date.
+            $firstDay = $probe->nextOccurrenceAfter($start->startOfDay()->subDay());
+
+            if ($firstDay === null) {
+                throw new InvalidArgumentException('None of the chosen days falls between the start and end dates.');
+            }
+
+            $firstDue = $firstDay->setTime($start->hour, $start->minute);
+            $task = $this->create(['due_at' => $firstDue] + $data, $by);
+
+            $schedule = new MaintenanceSchedule([
+                'title' => $task->title,
+                'task_type' => $task->type,
+                'asset_id' => $task->asset_id,
+                'room_id' => $task->room_id,
+                'location' => $task->location,
+                'repeat_every' => $every,
+                'repeat_unit' => $unit,
+                'weekdays' => $weekdays !== [] ? $weekdays : null,
+                'starts_on' => $start->toDateString(),
+                'next_due_on' => $firstDue->toDateString(),
+                'ends_on' => $until,
+                'due_time' => $firstDue->format('H:i'),
+                'assigned_to' => $task->assigned_to,
+                'priority' => $task->priority,
+                'checklist' => filled($data['checklist'] ?? null) ? array_values($data['checklist']) : null,
+                'notes' => $task->notes,
+            ]);
+
+            $next = $schedule->nextOccurrenceAfter($firstDue->startOfDay());
+            $schedule->forceFill($next === null ? ['is_active' => false] : ['next_due_on' => $next->toDateString()])->save();
+
+            $task->forceFill(['maintenance_schedule_id' => $schedule->id])->save();
+
+            return $task;
+        });
     }
 
     /**

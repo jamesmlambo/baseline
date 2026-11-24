@@ -6,12 +6,13 @@ namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
+use App\Models\Quotation;
 use App\Models\Receipt;
 use App\Services\Finance\DocumentPdf;
 use Illuminate\Http\Response;
 
 /**
- * Guest download links for invoices and receipts. Each document has its own unguessable token,
+ * Guest download links for invoices, receipts and quotations. Each document has its own unguessable token,
  * so a link shared by WhatsApp reveals only that one document (REC-07, WA-06).
  */
 class DocumentController extends Controller
@@ -21,6 +22,7 @@ class DocumentController extends Controller
         $document = match ($type) {
             'invoice' => Invoice::query()->where('public_token', $token)->firstOrFail(),
             'receipt' => Receipt::query()->where('public_token', $token)->firstOrFail(),
+            'quotation' => Quotation::query()->where('public_token', $token)->firstOrFail(),
         };
 
         return response($pdf->render($document), 200, [

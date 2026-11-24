@@ -26,7 +26,7 @@ class AccommodationTypesTable
                     ->description(fn ($record): ?string => $record->is_demo ? 'DEMO' : null),
                 TextColumn::make('rooms_count')
                     ->label('Rooms')
-                    ->counts('rooms'),
+                    ->counts(['rooms' => fn ($query) => $query->where('is_active', true)]),
                 TextColumn::make('max_occupancy')
                     ->label('Sleeps'),
                 TextColumn::make('base_nightly_rate_cents')

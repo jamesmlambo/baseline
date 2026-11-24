@@ -11,8 +11,9 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
 /**
- * HK-08: preventive maintenance. Each due schedule creates one task for its due date, then moves
- * on to the next date. Missed runs catch up with a single task, not one per missed period.
+ * HK-08: recurring tasks (preventive maintenance and any repeating job). Each due schedule creates
+ * one task for its due date, then moves on to the next day, week or month. Missed runs catch up
+ * with a single task, not one per missed period. A schedule past its end date switches itself off.
  */
 class RunMaintenanceSchedules
 {
@@ -38,25 +39,29 @@ class RunMaintenanceSchedules
 
                     $dueOn = CarbonImmutable::parse($schedule->next_due_on->toDateString(), 'Africa/Johannesburg');
 
-                    $task = $this->tasks->createOnce("schedule:{$schedule->id}:{$dueOn->toDateString()}", $schedule->task_type, Task::SOURCE_SCHEDULE, [
-                        'title' => $schedule->title,
-                        'room_id' => $schedule->room_id,
-                        'asset_id' => $schedule->asset_id,
-                        'location' => $schedule->location,
-                        'assigned_to' => $schedule->assigned_to,
-                        'maintenance_schedule_id' => $schedule->id,
-                        'checklist' => $schedule->checklist ?? [],
-                        'due_at' => $dueOn->endOfDay(),
-                    ]);
+                    if ($schedule->ends_on === null || $dueOn->toDateString() <= $schedule->ends_on->toDateString()) {
+                        $task = $this->tasks->createOnce("schedule:{$schedule->id}:{$dueOn->toDateString()}", $schedule->task_type, Task::SOURCE_SCHEDULE, array_filter([
+                            'title' => $schedule->title,
+                            'room_id' => $schedule->room_id,
+                            'asset_id' => $schedule->asset_id,
+                            'location' => $schedule->location,
+                            'assigned_to' => $schedule->assigned_to,
+                            'maintenance_schedule_id' => $schedule->id,
+                            'checklist' => $schedule->checklist ?? [],
+                            'priority' => $schedule->priority,
+                            'notes' => $schedule->notes,
+                            'due_at' => $schedule->dueAtOn($dueOn),
+                        ], fn ($value): bool => $value !== null));
 
-                    $created += $task->wasRecentlyCreated ? 1 : 0;
-
-                    $next = $dueOn;
-                    while ($next->lessThanOrEqualTo($today)) {
-                        $next = $next->addDays($schedule->interval_days);
+                        $created += $task->wasRecentlyCreated ? 1 : 0;
                     }
 
-                    $schedule->forceFill(['next_due_on' => $next->toDateString()])->save();
+                    // Missed runs catch up with one task: the next date is the first one after today.
+                    $next = $schedule->nextOccurrenceAfter($today);
+
+                    $schedule->forceFill($next === null
+                        ? ['is_active' => false]
+                        : ['next_due_on' => $next->toDateString()])->save();
                 });
             });
 
