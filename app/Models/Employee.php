@@ -65,8 +65,8 @@ class Employee extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('photo')->useDisk('local')->singleFile()->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
-        $this->addMediaCollection('pending_photo')->useDisk('local')->singleFile()->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+        $this->addMediaCollection('photo')->useDisk(config('filesystems.default'))->singleFile()->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+        $this->addMediaCollection('pending_photo')->useDisk(config('filesystems.default'))->singleFile()->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
     }
 
     public function displayName(): string

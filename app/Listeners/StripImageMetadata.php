@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Listeners;
 
+use App\Support\MediaFile;
 use Spatie\Image\Image;
 use Spatie\MediaLibrary\MediaCollections\Events\MediaHasBeenAddedEvent;
 use Throwable;
@@ -24,17 +25,19 @@ class StripImageMetadata
             return;
         }
 
-        $path = $media->getPath();
-
         try {
-            Image::load($path)->orientation()->save($path);
+            $size = MediaFile::withLocalCopy($media, function (string $path): int {
+                Image::load($path)->orientation()->save($path);
+                clearstatcache(true, $path);
+
+                return (int) filesize($path);
+            }, writeBack: true);
         } catch (Throwable $exception) {
             report($exception);
 
             return;
         }
 
-        clearstatcache(true, $path);
-        $media->forceFill(['size' => filesize($path)])->saveQuietly();
+        $media->forceFill(['size' => $size])->saveQuietly();
     }
 }

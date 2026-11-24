@@ -74,7 +74,7 @@ class EmployeeResource extends Resource
                 DatePicker::make('starts_on'),
                 DatePicker::make('ends_on')->afterOrEqual('starts_on'),
                 Select::make('status')->options(EmployeeStatus::options())->default(EmployeeStatus::Pending->value)->required(),
-                SpatieMediaLibraryFileUpload::make('photo')->collection('photo')->disk('local')->visibility('private')->image()->maxSize(4096),
+                SpatieMediaLibraryFileUpload::make('photo')->collection('photo')->disk(config('filesystems.default'))->image()->maxSize(4096),
             ]),
             Section::make('Contact (encrypted)')->columns(2)->schema([
                 TextInput::make('phone')->tel()->maxLength(32),

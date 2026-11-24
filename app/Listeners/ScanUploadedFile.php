@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Listeners;
 
 use App\Services\Security\FileScanner;
+use App\Support\MediaFile;
 use Illuminate\Support\Facades\Log;
 use Spatie\MediaLibrary\MediaCollections\Events\MediaHasBeenAddedEvent;
 
@@ -19,7 +20,7 @@ class ScanUploadedFile
     public function handle(MediaHasBeenAddedEvent $event): void
     {
         $media = $event->media;
-        $result = $this->scanner->scan($media->getPath());
+        $result = MediaFile::withLocalCopy($media, fn (string $path): string => $this->scanner->scan($path));
 
         if ($result === FileScanner::INFECTED) {
             Log::warning("Upload removed by virus scanner: media #{$media->id} ({$media->mime_type}).");

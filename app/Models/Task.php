@@ -71,7 +71,7 @@ class Task extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('photos')->useDisk('local')->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+        $this->addMediaCollection('photos')->useDisk(config('filesystems.default'))->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
     }
 
     public function locationLabel(): string

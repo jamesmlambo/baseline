@@ -56,7 +56,7 @@ class Payment extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('proof')
-            ->useDisk('local')
+            ->useDisk(config('filesystems.default'))
             ->acceptsMimeTypes(['application/pdf', 'image/jpeg', 'image/png']);
     }
 
