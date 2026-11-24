@@ -80,7 +80,11 @@
                         </label>
                     @endforeach
                 </div>
-                <p class="mt-3 text-sm text-ink-900/70">Your room is held for {{ $holdMinutes }} minutes while you pay. Card details are only ever entered on our payment provider's secure page.</p>
+                @if ($priceListToken)
+                    <p class="mt-3 text-sm text-ink-900/70">Bookings from a WhatsApp price list are paid by bank transfer. You will see our banking details and your payment reference after booking. Your room is held while we wait for the money.</p>
+                @else
+                    <p class="mt-3 text-sm text-ink-900/70">Your room is held for {{ $holdMinutes }} minutes while you pay. Card details are only ever entered on our payment provider's secure page.</p>
+                @endif
             </fieldset>
 
             <div class="space-y-3">

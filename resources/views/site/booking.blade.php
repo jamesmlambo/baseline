@@ -69,8 +69,14 @@
                     @endforeach
                 </div>
 
+                @if (! $bank && $booking->isBankTransferOnly())
+                    <div class="rounded-2xl border border-sand-200 bg-white p-5 text-sm text-ink-900/80">
+                        This booking is paid by bank transfer. Please reply to us on WhatsApp for our banking details, using your booking reference <strong class="font-mono">{{ $booking->reference }}</strong>.
+                    </div>
+                @endif
+
                 @if ($bank)
-                    <details class="rounded-2xl border border-sand-200 bg-white p-5" @if ($preferred === PaymentMethod::Eft) open @endif>
+                    <details class="rounded-2xl border border-sand-200 bg-white p-5" @if ($preferred === PaymentMethod::Eft || $booking->isBankTransferOnly()) open @endif>
                         <summary class="cursor-pointer font-semibold text-ink-900">Pay by EFT (bank transfer)</summary>
                         <dl class="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
                             <dt class="text-ink-900/60">Bank</dt><dd>{{ $bank['bank'] }}</dd>

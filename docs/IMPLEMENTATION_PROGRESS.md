@@ -526,3 +526,34 @@ At the client's request the New task form now asks **When**:
 - **Every month**: on the start date's day of each month, at the chosen time, with an optional end date.
 
 Recurring jobs has the same day tick boxes when it repeats weekly; if "Next due" is not a ticked day it moves to the next ticked day. Migration `2026_12_04_110000`: `maintenance_schedules.weekdays` (jsonb). 10 tests in `RecurringTasksTest`.
+
+## WhatsApp bookings pay by bank transfer only (24 Nov 2026)
+
+Client decision: guests who book through a WhatsApp price-list link may only pay by bank transfer (EFT).
+
+- The booking form opened from a price list offers only "EFT (bank transfer)" and explains that banking details and the reference follow after booking. Choosing card or Instant EFT anyway is refused and nothing is booked.
+- Bookings with source "WhatsApp" (price-list bookings, and staff bookings marked "WhatsApp") show no "Pay with Instant EFT / Card" buttons; the bank details open straight away. The online checkout refuses them. If bank details are not set yet, the guest is asked to reply on WhatsApp.
+- Ordinary website bookings are unchanged (Instant EFT, card or EFT). `Booking::isBankTransferOnly()`.
+
+### Tests
+2 new in `tests/Feature/Messaging/PriceListTest.php`; the existing price-list booking test now pays by EFT.
+
+## Room amenities with icons (24 Nov 2026)
+
+The client supplied 45 room amenities (shower, bathtub, bed types, accessibility, Wi-Fi, kettle, safe, pet-friendly…).
+
+- `AmenitySeeder` (part of `DatabaseSeeder`, every environment) adds them in the client's order as "In the room" amenities, each with an icon. Re-running leaves staff edits alone; a DEMO amenity with the same name becomes the real one and loses its placeholder text.
+- Icons: **Phosphor Icons** (MIT licence, `codeat3/blade-phosphor-icons`, duotone style), chosen at the client's request for looks. Where Phosphor has no exact picture, a close one is used (kettle: steaming bowl; mini-fridge: cold thermometer; microwave: oven; iron: T-shirt; blackout curtains: moon and stars; hot tub: waves; bed linen: folded shirt; all bed sizes: bed).
+- The icon appears before the name on the room page ("In the room"), on the Features & Amenities page, in the room type tick boxes (Bookings › Rooms & rates, now searchable with select-all) and in the Amenities list. Website › Amenities has an icon picker with previews. Unknown or missing icons fall back to a check mark.
+
+### Tests
+4 new in `tests/Feature/Website/AmenityIconsTest.php` (every icon exists, order, re-run safety, room page, tick boxes).
+
+## Fix: website photos were saved privately (24 Nov 2026)
+
+- Room photos, page header photos and news cover photos uploaded in the admin went to the default disk (private "local" on a laptop, the private bucket on Laravel Cloud), so the website could not show them. The upload fields and media collections now use the public media disk (`media-library.disk_name`: `public`, the public bucket on Cloud). The 5 photos already uploaded locally were moved to the public disk.
+- The booking-confirmed email failed when a booking had more than one invoice or receipt (lazy loading in the PDFs). The documents are now loaded with their booking, invoice and payment.
+- Local data: a duplicate "Standard Room" type created on 24 Nov was merged into the original (the client's 7 real rooms): price, description, amenities and photos moved; test booking BL-ENZ2M5 moved from a placeholder room to Room 10 with an audited room move; the duplicate and its placeholder rooms were switched off (not deleted).
+
+### Tests
+2 new: room photo upload lands on the public disk (`AmenityIconsTest`); confirmation email documents render for a booking with several invoices and receipts (`InvoicesTest`).

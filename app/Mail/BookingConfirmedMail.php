@@ -58,8 +58,9 @@ class BookingConfirmedMail extends Mailable
      */
     public function documents(): Collection
     {
-        return $this->booking->invoices()->whereNull('voided_at')->get()
+        // Loaded with their booking: each PDF reads it, and lazy loading is off outside production.
+        return $this->booking->invoices()->whereNull('voided_at')->with('booking')->get()
             ->toBase()
-            ->concat($this->booking->receipts()->get());
+            ->concat($this->booking->receipts()->with(['booking', 'invoice', 'payment'])->get());
     }
 }

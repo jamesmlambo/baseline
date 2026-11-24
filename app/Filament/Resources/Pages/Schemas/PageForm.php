@@ -40,6 +40,7 @@ class PageForm
                         SpatieMediaLibraryFileUpload::make('hero')
                             ->label('Header photo')
                             ->collection('hero')
+                            ->disk(config('media-library.disk_name'))
                             ->image()
                             ->imageEditor()
                             ->maxSize(8192)

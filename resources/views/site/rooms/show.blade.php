@@ -42,8 +42,8 @@
                 <h2 class="mt-10 font-display text-2xl font-semibold text-lodge-900">In the room</h2>
                 <ul class="mt-4 grid gap-2 sm:grid-cols-2">
                     @foreach ($type->amenities as $amenity)
-                        <li class="flex items-center gap-2 text-ink-900/80">
-                            <svg class="size-5 text-lodge-700" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg>
+                        <li class="flex items-center gap-2.5 text-ink-900/80">
+                            {{ $amenity->iconSvg('size-6 shrink-0 text-lodge-700') }}
                             {{ $amenity->name }}
                         </li>
                     @endforeach

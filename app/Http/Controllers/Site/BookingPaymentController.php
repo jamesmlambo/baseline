@@ -34,6 +34,10 @@ class BookingPaymentController extends Controller
             return redirect()->route('booking.show', $token)->with('status', 'This booking cannot be paid online any more. Please contact us.');
         }
 
+        if ($booking->isBankTransferOnly()) {
+            return redirect()->route('booking.show', $token)->with('status', 'This booking is paid by bank transfer. The banking details are below.');
+        }
+
         $amount = $this->amountToPay($booking);
 
         if ($amount->cents <= 0) {

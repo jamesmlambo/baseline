@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             SettingSeeder::class,
             AccommodationSeeder::class,
+            AmenitySeeder::class,
             WebsiteContentSeeder::class,
             MessageTemplateSeeder::class,
             TaskChecklistSeeder::class,

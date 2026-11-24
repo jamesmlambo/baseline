@@ -249,6 +249,15 @@ class Booking extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /**
+     * Bookings made through WhatsApp (price-list links, or by staff from a WhatsApp chat) are paid
+     * by bank transfer only (client decision, 24 Nov 2026): no Instant EFT or card checkout.
+     */
+    public function isBankTransferOnly(): bool
+    {
+        return $this->source === BookingSource::WhatsApp;
+    }
+
     public function nights(): int
     {
         return (int) $this->arrival_date->diffInDays($this->departure_date);

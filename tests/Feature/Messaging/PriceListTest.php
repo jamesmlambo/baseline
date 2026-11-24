@@ -75,6 +75,7 @@ it('stops working once expired or cancelled', function (string $how): void {
 })->with(['expired', 'cancelled']);
 
 it('WA-02 records a booking made from the price list as a WhatsApp booking', function (): void {
+    setBankDetails();
     $type = financeRoomType();
     $priceList = priceListFor();
 
@@ -85,13 +86,57 @@ it('WA-02 records a booking made from the price list as a WhatsApp booking', fun
     $this->post('/book', [
         'accommodation_type_id' => $type->id, 'arrival' => '2027-06-10', 'departure' => '2027-06-12', 'adults' => 2, 'children' => 0,
         'first_name' => 'Thabo', 'last_name' => 'Demo', 'email' => 'thabo@example.test', 'phone' => '082 777 0001',
-        'payment_method' => 'instant_eft', 'accept_terms' => '1', 'price_list' => $priceList->token,
+        'payment_method' => 'eft', 'accept_terms' => '1', 'price_list' => $priceList->token,
     ])->assertRedirect();
 
     $booking = Booking::query()->sole();
 
     expect($booking->source)->toBe(BookingSource::WhatsApp)
         ->and($priceList->fresh()->booking_id)->toBe($booking->id);
+});
+
+it('WA-02 offers only bank transfer to guests who book from a WhatsApp price list', function (): void {
+    setBankDetails();
+    $type = financeRoomType();
+    $priceList = priceListFor();
+    $form = [
+        'accommodation_type_id' => $type->id, 'arrival' => '2027-06-10', 'departure' => '2027-06-12', 'adults' => 2, 'children' => 0,
+        'first_name' => 'Thabo', 'last_name' => 'Demo', 'email' => 'thabo@example.test', 'phone' => '082 777 0001',
+        'accept_terms' => '1', 'price_list' => $priceList->token,
+    ];
+
+    $this->get(route('book', ['type' => $type->id, 'arrival' => '2027-06-10', 'departure' => '2027-06-12', 'adults' => 2, 'price_list' => $priceList->token]))
+        ->assertOk()
+        ->assertSee('value="eft"', false)
+        ->assertDontSee('value="instant_eft"', false)
+        ->assertDontSee('value="card"', false);
+
+    // Choosing a card or Instant EFT anyway is refused and books nothing.
+    $this->post('/book', $form + ['payment_method' => 'card'])->assertSessionHasErrors('payment_method');
+    expect(Booking::query()->count())->toBe(0);
+
+    $this->post('/book', $form + ['payment_method' => 'eft'])->assertRedirect();
+    $booking = Booking::query()->sole();
+
+    $this->get(route('booking.show', $booking->public_token))
+        ->assertOk()
+        ->assertSee('Pay by EFT (bank transfer)')
+        ->assertDontSee('Pay with Instant EFT')
+        ->assertDontSee('Pay with Card');
+
+    $this->post(route('booking.pay', $booking->public_token), ['method' => 'card'])->assertRedirect(route('booking.show', $booking->public_token));
+    expect($booking->payments()->count())->toBe(0);
+});
+
+it('WA-02 still lets ordinary website guests pay by card or Instant EFT', function (): void {
+    setBankDetails();
+    $type = financeRoomType();
+
+    $this->get(route('book', ['type' => $type->id, 'arrival' => '2027-06-10', 'departure' => '2027-06-12', 'adults' => 2]))
+        ->assertOk()
+        ->assertSee('value="instant_eft"', false)
+        ->assertSee('value="card"', false)
+        ->assertSee('value="eft"', false);
 });
 
 it('ignores an expired price-list token when booking', function (): void {

@@ -61,6 +61,7 @@ class PostForm
                         SpatieMediaLibraryFileUpload::make('cover')
                             ->label('Cover photo')
                             ->collection('cover')
+                            ->disk(config('media-library.disk_name'))
                             ->image()
                             ->imageEditor()
                             ->maxSize(8192),

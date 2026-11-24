@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\AmenityCategory;
+use BladeUI\Icons\Exceptions\SvgNotFound;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\HtmlString;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
@@ -16,6 +18,8 @@ use Spatie\Activitylog\Support\LogOptions;
 class Amenity extends Model
 {
     use LogsActivity;
+
+    public const FALLBACK_ICON = 'heroicon-o-check-circle';
 
     protected function casts(): array
     {
@@ -29,6 +33,32 @@ class Amenity extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()->useLogName('website')->logFillable()->logOnlyDirty()->dontLogEmptyChanges();
+    }
+
+    /**
+     * The amenity's icon as inline SVG (blade-icons name, e.g. "phosphor-wifi-high-duotone").
+     * Falls back to a check mark when no icon is set or the name is unknown.
+     */
+    public function iconSvg(string $class = 'size-5'): HtmlString
+    {
+        return self::svgFor($this->icon, $class);
+    }
+
+    public static function svgFor(?string $icon, string $class = 'size-5'): HtmlString
+    {
+        try {
+            return new HtmlString(svg(filled($icon) ? $icon : self::FALLBACK_ICON, $class, ['aria-hidden' => 'true'])->toHtml());
+        } catch (SvgNotFound) {
+            return new HtmlString(svg(self::FALLBACK_ICON, $class, ['aria-hidden' => 'true'])->toHtml());
+        }
+    }
+
+    /**
+     * Icon followed by the name, for admin tick boxes and lists. The name is escaped.
+     */
+    public function labelWithIcon(): string
+    {
+        return '<span style="display:inline-flex;align-items:center;gap:.4rem">'.self::svgFor($this->icon, 'size-5')->toHtml().'<span>'.e($this->name).'</span></span>';
     }
 
     /**

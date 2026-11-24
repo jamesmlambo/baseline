@@ -6,6 +6,7 @@ namespace App\Filament\Resources\AccommodationTypes\Schemas;
 
 use App\Actions\Inventory\SetRoomCount;
 use App\Filament\Forms\MoneyInput;
+use App\Models\Amenity;
 use App\Support\Money;
 use Closure;
 use Filament\Forms\Components\CheckboxList;
@@ -66,6 +67,7 @@ class AccommodationTypeForm
                         SpatieMediaLibraryFileUpload::make('gallery')
                             ->label('Photos')
                             ->collection('gallery')
+                            ->disk(config('media-library.disk_name'))
                             ->multiple()
                             ->reorderable()
                             ->image()
@@ -75,7 +77,11 @@ class AccommodationTypeForm
                             ->helperText('The first photo is the main one. JPEG, PNG or WebP up to 8 MB. Location data is removed automatically.'),
                         CheckboxList::make('amenities')
                             ->relationship('amenities', 'name', fn ($query) => $query->where('category', 'room')->orderBy('sort_order'))
-                            ->columns(2)
+                            ->getOptionLabelFromRecordUsing(fn (Amenity $record): string => $record->labelWithIcon())
+                            ->allowHtml()
+                            ->searchable()
+                            ->bulkToggleable()
+                            ->columns(3)
                             ->helperText('Manage the list under Website › Amenities.'),
                     ]),
                 Section::make('Occupancy and pricing')

@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__.'/FinanceTestHelpers.php';
 
 use App\Actions\Payments\IssueBookingInvoice;
+use App\Actions\Reception\AddCharge;
 use App\Enums\BookingStatus;
 use App\Enums\MessageChannel;
 use App\Enums\PaymentMethod;
@@ -21,6 +22,7 @@ use App\Services\Finance\DocumentPdf;
 use App\Services\Finance\InvoiceDelivery;
 use App\Services\Payments\GatewayEvent;
 use App\Services\Payments\PaymentLedger;
+use App\Support\Money;
 use Database\Seeders\MessageTemplateSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
@@ -200,4 +202,19 @@ it('PAY-02 shows where an invoice was emailed and how many times to each address
         ->and(DB::table('document_deliveries')->pluck('recipient')->implode(' '))->not->toContain('example.test');
 
     Livewire::test(ListInvoices::class)->assertTableColumnStateSet('email_status', 'Sent 3× to 2 addresses', $invoice);
+});
+
+it('PAY-02 builds the confirmation email for a booking with several invoices and receipts', function (): void {
+    $booking = reserve();
+    app(PaymentLedger::class)->recordAtReception($booking, PaymentMethod::Cash, $booking->total_cents, staffUser(StaffRole::Receptionist));
+    app(AddCharge::class)->handle($booking->fresh(), 'Late checkout', 1, Money::cents(20_000), staffUser(StaffRole::Receptionist));
+    app(PaymentLedger::class)->recordAtReception($booking->fresh(), PaymentMethod::Cash, Money::cents(20_000), staffUser(StaffRole::Receptionist));
+
+    $documents = (new BookingConfirmedMail($booking->fresh()))->documents();
+
+    expect($documents)->toHaveCount(4);
+
+    foreach ($documents as $document) {
+        expect(app(DocumentPdf::class)->html($document))->toContain($document->number);
+    }
 });

@@ -53,6 +53,8 @@ class BookingController extends Controller
                 ->withErrors(['adults' => "{$type->name} sleeps at most {$type->max_occupancy}."]);
         }
 
+        $priceList = self::usablePriceList($request->query('price_list'));
+
         return view('site.book', [
             'type' => $type,
             'stay' => $stay,
@@ -60,12 +62,13 @@ class BookingController extends Controller
             'children' => $children,
             'quote' => $quote,
             'extras' => Extra::query()->online()->get(),
-            'methods' => PaymentMethod::onlineOrder(),
+            // Bookings from a WhatsApp price list are paid by bank transfer only.
+            'methods' => $priceList !== null ? [PaymentMethod::Eft] : PaymentMethod::onlineOrder(),
             'depositPercent' => $finance->depositPercent(),
             'holdMinutes' => $finance->onlineHoldMinutes(),
             'bankDetailsAvailable' => $finance->bankDetails() !== null,
             'isAvailable' => $availability->availableRoomsQuery($type, $stay)->exists(),
-            'priceListToken' => self::usablePriceList($request->query('price_list'))?->token,
+            'priceListToken' => $priceList?->token,
         ]);
     }
 
@@ -89,11 +92,17 @@ class BookingController extends Controller
         $stay = new StayDates($request->string('arrival')->value(), $request->string('departure')->value());
         $method = PaymentMethod::from($request->string('payment_method')->value());
 
-        if ($method === PaymentMethod::Eft && $finance->bankDetails() === null) {
-            return back()->withInput()->withErrors(['payment_method' => 'EFT is not available yet. Please choose another way to pay, or contact us.']);
+        $priceList = self::usablePriceList($request->input('price_list'));
+
+        if ($priceList !== null && $method !== PaymentMethod::Eft) {
+            return back()->withInput()->withErrors(['payment_method' => 'Bookings from a WhatsApp price list are paid by bank transfer (EFT).']);
         }
 
-        $priceList = self::usablePriceList($request->input('price_list'));
+        if ($method === PaymentMethod::Eft && $finance->bankDetails() === null) {
+            return back()->withInput()->withErrors(['payment_method' => $priceList !== null
+                ? 'Bank transfer is not available yet, so this booking cannot be made online. Please reply on WhatsApp and we will help you.'
+                : 'EFT is not available yet. Please choose another way to pay, or contact us.']);
+        }
 
         try {
             $booking = $create->handle(new ReservationRequest(
@@ -146,7 +155,7 @@ class BookingController extends Controller
         return view('site.booking', [
             'booking' => $booking,
             'invoice' => $booking->currentInvoice(),
-            'methods' => PaymentMethod::onlineOrder(),
+            'methods' => $booking->isBankTransferOnly() ? [PaymentMethod::Eft] : PaymentMethod::onlineOrder(),
             'bank' => app(FinanceSettings::class)->bankDetails(),
         ]);
     }

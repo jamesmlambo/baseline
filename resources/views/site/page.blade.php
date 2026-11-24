@@ -14,7 +14,8 @@
                 <ul class="mt-4 grid gap-4 sm:grid-cols-2">
                     @foreach ($items as $amenity)
                         <li class="rounded-2xl border border-sand-200 bg-white p-5">
-                            <p class="flex items-center gap-2 font-semibold text-ink-900">
+                            <p class="flex items-center gap-2.5 font-semibold text-ink-900">
+                                {{ $amenity->iconSvg('size-6 shrink-0 text-lodge-700') }}
                                 {{ $amenity->name }}
                                 @if ($amenity->is_demo) <x-site.demo-badge /> @endif
                             </p>
