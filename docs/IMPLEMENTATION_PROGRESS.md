@@ -557,3 +557,19 @@ The client supplied 45 room amenities (shower, bathtub, bed types, accessibility
 
 ### Tests
 2 new: room photo upload lands on the public disk (`AmenityIconsTest`); confirmation email documents render for a booking with several invoices and receipts (`InvoicesTest`).
+
+## Copy laptop content to Laravel Cloud (24 Nov 2026)
+
+Pushing to GitHub deploys code only; each site has its own database and photo storage. To bring room content set up on the laptop to the Cloud site:
+
+```
+php artisan app:copy-content-to-cloud          # dry run: lists what would change
+php artisan app:copy-content-to-cloud --apply  # copies it
+```
+
+- Copies amenities (by name), room types (by address/slug: name, description, guests, prices, bookable, order), their rooms (by code), ticked amenities, and room photos with their website sizes (to the public bucket). Only adds what is missing and updates what changed; photos are never copied twice. DEMO room types and amenities are skipped. Bookings, guests, payments and users are never copied.
+- Laptop only (refuses in any other environment). Needs the Cloud CLI signed in (`php vendor/bin/cloud auth`) and `CLOUD_COPY_*` in `.env` (resource IDs, not secrets; see `.env.example`). The database password and bucket keys are read from the CLI on each run and never stored or printed.
+- `App\Services\Website\CloudContentCopy`, `App\Console\Commands\CopyContentToCloud`, `config/cloud_copy.php`.
+
+### Tests
+3 new in `tests/Feature/Website/CloudContentCopyTest.php` (against an empty copy of all tables in a separate schema).
